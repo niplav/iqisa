@@ -1,0 +1,56 @@
+body {
+	color: #444;
+	font-size: 18px;
+	line-height: 1.5;
+	margin: 40px auto;
+	max-width: 800px;
+	padding: 0 10px;
+}
+
+pre {
+	background: #eee;
+	padding: 0.2em 5px;
+	overflow: scroll;
+}
+
+div {
+	background: #f0f0f0;
+	padding: 0.2em 5px;
+	overflow: scroll;
+}
+
+blockquote {
+	background: #f7f7f7;
+	margin: 1.5em 10px;
+	padding: 0.5em 10px;
+}
+
+table {
+	width: 800px;
+	border: solid 1px #000000;
+	border-collapse: collapse;
+}
+
+td {
+	font-size: 18px;
+	line-height: 1.6;
+	padding: 0em 8px;
+	border: solid 1px #000000;
+}
+
+img {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+video {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.hanchor {
+	color: #222;
+	text-decoration: none;
+}
