@@ -1,6 +1,66 @@
 GJOpen Data: Description
 =========================
 
+The data in the dataset was collected over four years of forecasting.
+
+In every year, the Good Judgement Project (from here on GJP)
+collected forecasts by surveying forecasters (aggregated in the files
+`survey_fcasts.yr{1,2,3,4}.csv`). Additionally, from year 2 onwards,
+they also ran prediction markets to determine probabilities.
+
+### Prediction Markets
+
+2. For the second year, the prediction market was a continuous [double auction](https://en.wikipedia.org/wiki/Double_auction) (CDA) market run by the company Lumenogic<!--TODO: link-->, in which the forecasters participated without forming teams.
+3. In year three, there were four different prediction markets.
+	* Three CDA markets, run by Lumenogic:
+		* `lum1`, in which only US participants could participate, without teams
+		* `lum2a`, in which everyone could participate, without teams
+		* `lum2`, in which everyone could participate, which switched from individuals to teams halfway through year three (2014)
+	* One logarithmically scored prediction market (LMSR) run by Inkling<!--TODO: link, is it https://www.inkling.com/?-->, without teams
+4. For the fourth year, there were five prediction markets, all run by Inkling.
+	* First market: similar to the Inkling market in year three<!--TODO: what is an IFP in the context of markets?-->
+	* The other four markets used an IFP on the first day to determine prices:
+		* `supers`, for the previous years superforecasters
+		* `batch.train`, for any participants from the previous year
+		* `teams`, for participants in teams
+		* `batch.notrain`, with no specificities
+
+### Identifying Forecasters & Teams
+
+Forecasters are identified by the fields
+
+* `user_id` everywhere, except:
+* `userid_yr4` for year 4 (those can be mapped to each other with information from the `all_individual_differences.csv` file),
+* `user.ID` for the year 2 prediction market data,
+* `gjp.user.id` for year 3 Inkling prediction market data,
+* `User.ID` for year 3 Lumenogic prediction market data, and
+* `GJP.User.ID` for year 4 prediction market data
+
+Teams are identified by the fields
+
+* `team` everywhere, except
+* `Team` in the year 3 Lumenogic prediction market data, and
+* `GJP.Team.ID` in the year 4 prediction market data
+
+It is not clear how to map individual forecasters to teams: Was there
+a one-to-one mapping from a forecaster and a year to a team? Or could a
+forecaster be in multiple different teams during a single year? Or were
+there even only stable teams for all years? I don't know, and online
+resources aren't very clear on this.<!--TODO: check a bit more deeply,
+maybe look what the data says-->
+
+It is possible to map users to teams via the
+`survey_fcasts_yr{1,2,3,4}.csv` files. Looking at those files, in year
+one there is no user who participated in more than 1 group (and plenty who
+participated in no groups at all). In year two there is one user (ID 2067)
+who made forecasts both from a group (group 4) *and* outside of a group.
+In year three the user 1095 made forecasts both from groups 1 *and* 4,
+and in year 4 there are again no such duplicate groups.
+
+<!--TODO: message the GJP people about this?-->
+
+Three cheers for data clarity!
+
 Files
 ------
 
@@ -13,6 +73,17 @@ one question per line.
 
 Contains some stray invalid characters which
 cause trouble while parsing the CSV with Python.
+
+First, the data uses carriage return both in fields and to separate
+fields. *sigh*.
+
+We can solve this with the following command:
+
+	sed 's/\r([0-9]+-[0-9]+)/\n\1/g' <ifps.csv >ifps_new.csv
+	mv ifps_new.csv ifps.csv
+
+Then the file also contains some *other* characters that shouldn't belong
+there either.
 
 	tr -d '[ -~]\n\t' <ifps.csv | od -A x -t x1 | sed 's/^[0-9a-f]+ ?//' | tr ' ' '\n' | sort | uniq -c
 	      1 
@@ -60,6 +131,12 @@ forecasters.
 
 These files contain individual non-prediction market forecasts.
 
+In the file `survey_fcasts.yr1.csv` there are a couple of forecasts made
+by the unpersoned user "NULL". I don't know what this means: I suspected
+at first that those were forecasts on "voided" questions, but it turns
+out that that's not the case. The user "NULL" doesn't occur in any other
+of those four files.
+
 ### `pm_*`
 
 These files contain information for the prediction markets.
@@ -69,12 +146,3 @@ traders:
 
 * The field `Tru.Belief` in the files `pm_transactions.lum1.yr3.csv`, `pm_transactions.lum2.yr3.csv` and `pm_transactions.lum2a.yr3.csv`
 * The field `probability_estimate` in the files `pm_transactions.inkling.yr3.csv`
-
-Different Scoring Rules
-------------------------
-
-### Brier Score
-
-### Median Score
-
-### Relative Brier Score
