@@ -10,16 +10,16 @@ they also ran prediction markets to determine probabilities.
 
 ### Prediction Markets
 
-2. For the second year, the prediction market was a continuous [double auction](https://en.wikipedia.org/wiki/Double_auction) (CDA) market run by the company Lumenogic<!--TODO: link-->, in which the forecasters participated without forming teams.
+2. For the second year, the prediction market was a continuous [double auction](https://en.wikipedia.org/wiki/Double_auction) (CDA) market run by the company [Lumenogic](https://www.hypermind.com/en/lumenogic-becomes-hypermind/), in which the forecasters participated without forming teams.
 3. In year three, there were four different prediction markets.
 	* Three CDA markets, run by Lumenogic:
 		* `lum1`, in which only US participants could participate, without teams
 		* `lum2a`, in which everyone could participate, without teams
 		* `lum2`, in which everyone could participate, which switched from individuals to teams halfway through year three (2014)
-	* One logarithmically scored prediction market (LMSR) run by Inkling<!--TODO: link, is it https://www.inkling.com/?-->, without teams
+	* One logarithmically scored prediction market (LMSR) run by Inkling ([their website](https://www.inklingmarkets.com/) seems down?), without teams
 4. For the fourth year, there were five prediction markets, all run by Inkling.
 	* First market: similar to the Inkling market in year three<!--TODO: what is an IFP in the context of markets?-->
-	* The other four markets used an IFP on the first day to determine prices:
+	* The other four markets used an "IFP" (not sure what that means, could either be an [Intelligent Forecasting Platform](https://www.pwc.com/gr/en/advisory/data-and-analytics/intelligent-forecasting-platform.html) or a [factor](https://financial-dictionary.thefreedictionary.com/IFP)?)
 		* `supers`, for the previous years superforecasters
 		* `batch.train`, for any participants from the previous year
 		* `teams`, for participants in teams
@@ -43,9 +43,9 @@ Teams are identified by the fields
 * `GJP.Team.ID` in the year 4 prediction market data
 
 It is not clear how to map individual forecasters to teams: Was there
-a one-to-one mapping from a forecaster and a year to a team? Or could a
-forecaster be in multiple different teams during a single year? Or were
-there even only stable teams for all years? I don't know, and online
+a one-to-one mapping from a forecaster and a year to a team? Or could
+a forecaster be in multiple different teams during a single year? Or
+were there only stable teams for all years? I don't know, and online
 resources aren't very clear on this.<!--TODO: check a bit more deeply,
 maybe look what the data says-->
 
@@ -112,6 +112,11 @@ An example part of the `diff` then looks like this:
 
 	-1113-6,6,When will Viktor Orban resign or otherwise vacate the office of Prime Minister of Hungary?,"Outcome will be resolved ""Event will not occur before 1 April 2013"" if Orban holds the position of Prime Minister at this time and has not resigned or suffered confidence vote defeat. Death of Orban constitutes vacation of office; temporary incapacitation due to routine medical procedure does not. <8C><E6>Whether prolonged medical incapacitation (e.g. coma) constitutes vacation of office will be determined on a case-by-case basis by a subject matter expert familiar with Hungarian succession law. <8C><E6>A formal announcement or letter of intent to resign that lists a specific date will be treated as constituting resignation. <8C><E6>Outcome will be resolved based on reporting from one or more of the following sources:<8C><E6>BBC<8C><E6>News or Reuters or Economist Online (http://www.bbc.co.uk/news/<8C><E6>or<8C><E6>http://www.reuters.com/<8C><E6>orhttp://www.economist.com). If nothing is reported in these sources, then the ""status quo"" outcome typically will be assumed (e.g., for a question about a political leader leaving office, an absence of reporting will be taken to indicate that the leader remains in office). <8C><E6>Administrator<8C><E6>reserves the right to use other sources as needed (e.g.,<8C><E6>CIA<8C><E6>World Factbook, Wikipedia), provided those sources do not directly contradict concurrent event reporting from<8C><E6>BBC<8C><E6>News, Reuters, or Economist Online. In cases of substantial controversy or uncertainty,<8C><E6>Administrator<8C><E6>may refer the question to outside subject matter experts, or we may deem the question invalid/void. Before should be interpreted to mean at or prior to the end (11:59:59 ET) of the previous day. ",closed,6/25/12,3/30/13 0:00,3/31/13,3/31/13,d,Orban vacate PM of Hungary,279,4,"(a) Between 1 Jul 2012 and 30 Sep 2012, (b) Between 1 Oct 2012 and 31 Dec 2012, (c) Between 1 Jan 2013 and 31 Mar 2013, (d) Event will not occur before 1 April 2013"
 	+1113-6,6,When will Viktor Orban resign or otherwise vacate the office of Prime Minister of Hungary?,"Outcome will be resolved ""Event will not occur before 1 April 2013"" if Orban holds the position of Prime Minister at this time and has not resigned or suffered confidence vote defeat. Death of Orban constitutes vacation of office; temporary incapacitation due to routine medical procedure does not. Whether prolonged medical incapacitation (e.g. coma) constitutes vacation of office will be determined on a case-by-case basis by a subject matter expert familiar with Hungarian succession law. A formal announcement or letter of intent to resign that lists a specific date will be treated as constituting resignation. Outcome will be resolved based on reporting from one or more of the following sources:BBCNews or Reuters or Economist Online (http://www.bbc.co.uk/news/orhttp://www.reuters.com/orhttp://www.economist.com). If nothing is reported in these sources, then the ""status quo"" outcome typically will be assumed (e.g., for a question about a political leader leaving office, an absence of reporting will be taken to indicate that the leader remains in office). Administratorreserves the right to use other sources as needed (e.g.,CIAWorld Factbook, Wikipedia), provided those sources do not directly contradict concurrent event reporting fromBBCNews, Reuters, or Economist Online. In cases of substantial controversy or uncertainty,Administratormay refer the question to outside subject matter experts, or we may deem the question invalid/void. Before should be interpreted to mean at or prior to the end (11:59:59 ET) of the previous day. ",closed,6/25/12,3/30/13 0:00,3/31/13,3/31/13,d,Orban vacate PM of Hungary,279,4,"(a) Between 1 Jul 2012 and 30 Sep 2012, (b) Between 1 Oct 2012 and 31 Dec 2012, (c) Between 1 Jan 2013 and 31 Mar 2013, (d) Event will not occur before 1 April 2013"
+
+#### Dates are not ISO-8601
+
+Instead, they use the American date format (ugh). Use `strptime` or a
+similar function to parse them.
 
 #### Relevant Fields
 
