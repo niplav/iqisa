@@ -7,8 +7,8 @@ import pandas as pd
 
 PROB_MARGIN=0.005
 
-survey_files=["./survey_fcasts.yr1.csv", "./survey_fcasts.yr2.csv", "./survey_fcasts.yr3.csv", "./survey_fcasts.yr4.csv"]
-questions_files=["ifps.csv"]
+survey_files=["./data/survey_fcasts.yr1.csv", "./data/survey_fcasts.yr2.csv", "./data/survey_fcasts.yr3.csv", "./data/survey_fcasts.yr4.csv"]
+questions_files=["./data/ifps.csv"]
 
 def get_questions():
 	questions=pd.DataFrame()
