@@ -242,5 +242,5 @@ nonprintable lines).
 
 We again deal with this via `tr`:
 
-	tr -dc '[ -~]' <pm_transactions.inkling.yr3.csv >pm_transactions.inkling.yr3_new.csv
+	tr -dc '[ -~\n]' <pm_transactions.inkling.yr3.csv >pm_transactions.inkling.yr3_new.csv
 	mv pm_transactions.inkling.yr3_new.csv pm_transactions.inkling.yr3.csv
