@@ -11,6 +11,49 @@ PROB_MARGIN=0.005
 survey_files=["./data/survey_fcasts.yr1.csv", "./data/survey_fcasts.yr2.csv", "./data/survey_fcasts.yr3.csv"]
 questions_files=["./data/ifps.csv"]
 
+year2_data_changes={
+	'fixes': ['timestamp', 'question_id_no_zero', 'price_before_100', 'question_id_str'],
+	'column_rename': {
+		'IFPID': 'question_id',
+		'user.ID': 'user_id',
+		'Op.Type': 'op_type',
+		'order.ID': 'order_id',
+		'buy': 'isbuy',
+		'long': 'islong',
+		'with.MM': 'with_mm',
+		'matching.order.ID': 'matching_order_id',
+		'price': 'price_before_prob',
+		'qty': 'quantity',
+		'by.agent': 'by_agent',
+	}
+}
+year3_data_changes={
+	'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str'],
+	'column_rename': {
+		'IFPID': 'question_id',
+		'Outcome': 'outcome',
+		'User.ID': 'user_id',
+		'Op.Type': 'op_type',
+		'Order.ID': 'order_id',
+		'isBuy': 'isbuy',
+		'isLong': 'islong',
+		'With.MM': 'with_mm',
+		'By.Agent': 'by_agent',
+		'Matching.Order.ID': 'matching_order_id',
+		'Order.Price': 'price_before_prob',
+		'Order.Qty': 'quantity',
+		'Trade.Price': 'price_after_prob',
+		'Trade.Qty': 'trade_qty',
+		'Tru.Belief': 'prob_est',
+		'Low.Fuse': 'low_fuse',
+		'Max.Bid': 'max_bid',
+		'Min.Ask': 'min_ask',
+		'High.Fuse': 'high_fuse',
+		'Min.Qty': 'min_qty',
+		'Divest.Only': 'divest_only',
+	}
+}
+
 year4_data_changes={
 	'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name'],
 	'column_rename': {
@@ -30,35 +73,37 @@ year4_data_changes={
 }
 
 market_files={
-#	'./data/pm_transactions.batch.notrain.yr4.csv': year4_data_changes,
-#	'./data/pm_transactions.control.yr4.csv': year4_data_changes,
-#	'./data/pm_transactions.batch.notrain.yr4.csv': year4_data_changes,
-#	'./data/pm_transactions.lum2a.yr3.csv': {
-#		'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str'],
-#		'column_rename': {
-#			'IFPID': 'question_id',
-#			'Outcome': 'outcome',
-#			'User.ID': 'user_id',
-#			'Op.Type': 'op_type',
-#			'Order.ID': 'order_id',
-#			'isBuy': 'isbuy',
-#			'isLong': 'islong',
-#			'With.MM': 'with_mm',
-#			'By.Agent': 'by_agent',
-#			'Matching.Order.ID': 'matching_order_id',
-#			'Order.Price': 'price_before_prob',
-#			'Order.Qty': 'quantity',
-#			'Trade.Price': 'price_after_prob',
-#			'Trade.Qty': 'trade_qty',
-#			'Tru.Belief': 'prob_est',
-#			'Low.Fuse': 'low_fuse',
-#			'Max.Bid': 'max_bid',
-#			'Min.Ask': 'min_ask',
-#			'High.Fuse': 'high_fuse',
-#			'Min.Qty': 'min_qty',
-#			'Divest.Only': 'divest_only',
-#		}
-#	},
+	'./data/pm_transactions.lum1.yr2.csv': year2_data_changes,
+	'./data/pm_transactions.lum2.yr2.csv': 	year2_data_changes,
+	'./data/pm_transactions.lum2a.yr3.csv': year3_data_changes,
+	'./data/pm_transactions.lum1.yr3.csv': year3_data_changes,
+	'./data/pm_transactions.lum2.yr3.csv': {
+		'fixes': ['timestamp', 'question_id_no_zero', 'price_before_100', 'prob_est_100', 'question_id_str'],
+		'column_rename': {
+			'IFPID': 'question_id',
+			'Outcome': 'outcome',
+			'User.ID': 'user_id',
+			'Team': 'team_id',
+			'Op.Type': 'op_type',
+			'Order.ID': 'order_id',
+			'isBuy': 'isbuy',
+			'isLong': 'islong',
+			'With.MM': 'with_mm',
+			'By.Agent': 'by_agent',
+			'Matching.Order.ID': 'matching_order_id',
+			'Order.Price': 'price_before_prob',
+			'Order.Qty': 'quantity',
+			'Trade.Price': 'price_after_prob',
+			'Trade.Qty': 'trade_qty',
+			'Tru.Belief': 'prob_est',
+			'Low.Fuse': 'low_fuse',
+			'Max.Bid': 'max_bid',
+			'Min.Ask': 'min_ask',
+			'High.Fuse': 'high_fuse',
+			'Min.Qty': 'min_qty',
+			'Divest.Only': 'divest_only',
+		}
+	},
 	'./data/pm_transactions.inkling.yr3.csv': {
 		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc'],
 		'column_rename': {
@@ -74,52 +119,29 @@ market_files={
 			'gjp.user.id': 'user_id'
 		}
 	},
-#	'./data/pm_transactions.lum2.yr2.csv': {
-#		'fixes': ['timestamp', 'question_id_no_zero', 'price_before_100', 'question_id_str'],
-#		'column_rename': {
-#			'IFPID': 'question_id',
-#			'user.ID': 'user_id',
-#			'Op.Type': 'op_type',
-#			'order.ID': 'order_id',
-#			'buy': 'isbuy',
-#			'long': 'islong',
-#			'with.MM': 'with_mm',
-#			'matching.order.ID': 'matching_order_id',
-#			'qty': 'quantity',
-#			'by.agent': 'by_agent',
-#			'price': 'price_before_prob'
-#		}
-#	},
-#	'./data/pm_transactions.lum2.yr3.csv': {
-#		'fixes': ['timestamp', 'question_id_no_zero', 'price_before_100', 'prob_est_100', 'question_id_str'],
-#		'column_rename': {
-#			'IFPID': 'question_id',
-#			'Outcome': 'outcome',
-#			'User.ID': 'user_id',
-#			'Team': 'team_id',
-#			'Op.Type': 'op_type',
-#			'Order.ID': 'order_id',
-#			'isBuy': 'isbuy',
-#			'isLong': 'islong',
-#			'With.MM': 'with_mm',
-#			'By.Agent': 'by_agent',
-#			'Matching.Order.ID': 'matching_order_id',
-#			'Order.Price': 'price_before_prob',
-#			'Order.Qty': 'quantity',
-#			'Trade.Price': 'price_after_prob',
-#			'Trade.Qty': 'trade_qty',
-#			'Tru.Belief': 'prob_est',
-#			'Low.Fuse': 'low_fuse',
-#			'Max.Bid': 'max_bid',
-#			'Min.Ask': 'min_ask',
-#			'High.Fuse': 'high_fuse',
-#			'Min.Qty': 'min_qty',
-#			'Divest.Only': 'divest_only',
-#		}
-#	}
+	'./data/pm_transactions.teams.yr4.csv': {
+		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name'],
+		'column_rename': {
+			'Trade.ID': 'trade_id',
+			'Market.Name': 'market_name',
+			'Stock.Name': 'stock_name',
+			'Trade.Type': 'trade_type',
+			'Quantity': 'quantity',
+			'Spent': 'spent',
+			'Created.At': 'created_at',
+			'Filled.At': 'filled_at',
+			'Price.Before': 'price_before_prob',
+			'Price.After': 'price_after_prob',
+			'Probability.Estimate': 'prob_est',
+			'GJP.Team.ID': 'team_id',
+			'GJP.User.ID': 'user_id'
+		}
+	},
+	'./data/pm_transactions.batch.notrain.yr4.csv': year4_data_changes,
+	'./data/pm_transactions.control.yr4.csv': year4_data_changes,
+	'./data/pm_transactions.batch.notrain.yr4.csv': year4_data_changes,
+	'./data/pm_transactions.supers.yr4.csv': year4_data_changes,
 }
-
-#"./data/pm_transactions.inkling.yr3.csv", "./data/pm_transactions.supers.yr4.csv", "./data/pm_transactions.lum1.yr2.csv", "./data/pm_transactions.teams.yr4.csv", "./data/pm_transactions.lum1.yr3.csv"]
 
 def extract_id(s):
 	p=re.compile('^[0-9]+')
@@ -146,7 +168,7 @@ def get_market_forecasts():
 			market['price_after_prob']=market['price_after_prob'].map(lambda x: float(x.replace('%', ''))/100)
 		if 'prob_est_perc' in market_files[f]['fixes']:
 			strperc=market.loc[market['prob_est'].map(type)==str]
-			market.loc[market['prob_est'].map(type)==str, 'prob_est']=strperc['prob_est'].map(lambda x: float(x.replace('%', ''))/100)
+			market.loc[market['prob_est'].map(type)==str, 'prob_est']=strperc['prob_est'].map(lambda x: np.nan if x=='no' else float(x.replace('%', ''))/100)
 		if 'price_before_100' in market_files[f]['fixes']:
 			market['price_before_prob']=market['price_before_prob'].map(lambda x: float(x))/100
 		if 'price_after_100' in market_files[f]['fixes']:
@@ -160,14 +182,14 @@ def get_market_forecasts():
 
 	# prices in (-∞,0]∪[1,∞] are truncated to [MIN_PROB, 1-MIN_PROB]
 
-#	market_forecasts.loc[market_forecasts['price_before_prob']<=0, 'price_before_prob']=PROB_MARGIN
-#	market_forecasts.loc[market_forecasts['price_before_prob']>=1, 'price_before_prob']=1-PROB_MARGIN
-#
-#	market_forecasts.loc[market_forecasts['price_after_prob']<=0, 'price_after_prob']=PROB_MARGIN
-#	market_forecasts.loc[market_forecasts['price_after_prob']>=1, 'price_after_prob']=1-PROB_MARGIN
-#
-#	market_forecasts.loc[market_forecasts['prob_est']<=0, 'prob_est']=PROB_MARGIN
-#	market_forecasts.loc[market_forecasts['prob_est']>=1, 'prob_est']=1-PROB_MARGIN
+	market_forecasts.loc[market_forecasts['price_before_prob']<=0, 'price_before_prob']=PROB_MARGIN
+	market_forecasts.loc[market_forecasts['price_before_prob']>=1, 'price_before_prob']=1-PROB_MARGIN
+
+	market_forecasts.loc[market_forecasts['price_after_prob']<=0, 'price_after_prob']=PROB_MARGIN
+	market_forecasts.loc[market_forecasts['price_after_prob']>=1, 'price_after_prob']=1-PROB_MARGIN
+
+	market_forecasts.loc[market_forecasts['prob_est']<=0, 'prob_est']=PROB_MARGIN
+	market_forecasts.loc[market_forecasts['prob_est']>=1, 'prob_est']=1-PROB_MARGIN
 
 	return market_forecasts
 
@@ -208,6 +230,8 @@ def get_survey_forecasts():
 
 	survey_forecasts.loc[survey_forecasts['probability']==0, 'probability']=PROB_MARGIN
 	survey_forecasts.loc[survey_forecasts['probability']==1, 'probability']=1-PROB_MARGIN
+
+	return survey_forecasts
 
 def frontfill_forecasts(forecasts):
 	"""forecasts should be a dataframe with at least these five fields:
@@ -250,7 +274,7 @@ def arith_aggr(forecasts):
 def brier_score(probabilities, outcomes):
 	return np.mean((probabilities-outcomes)**2)
 
-#survey_forecasts=get_survey_forecasts()
-#questions=get_questions()
+survey_forecasts=get_survey_forecasts()
+questions=get_questions()
 #survey_forecasts=frontfill_forecasts(survey_forecasts)
 market_forecasts=get_market_forecasts()
