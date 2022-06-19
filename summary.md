@@ -42,12 +42,61 @@ Teams are identified by the fields
 * `Team` in the year 3 Lumenogic prediction market data, and
 * `GJP.Team.ID` in the year 4 prediction market data
 
-It is not clear how to map individual forecasters to teams: Was there
-a one-to-one mapping from a forecaster and a year to a team? Or could
-a forecaster be in multiple different teams during a single year? Or
-were there only stable teams for all years? I don't know, and online
-resources aren't very clear on this.<!--TODO: check a bit more deeply,
-maybe look what the data says-->
+It's not hard to find out *whether* a forecaster was in a team (or whether they were a forecaster): the field `ctt` in the `survey_fcasts_yr{1,2,3,4}.csv` files describes the status of the forecaster at that time:
+
+	# User condition assignment
+	ctt
+		Individuals
+		1a   = Individual w/o training (all years)
+		1b   = Individual w/ probability training (all years)
+		1c   = Individual w/ scenario training (year 1)
+		1h   = Individual w/ training; Hybrid-Accountability (year 4)
+		1n   = MOOF platform with NCBP scoring (year 4)
+		1p   = Individual w/ training; Process-Accountability (year 4)
+		1r1  = MOOF raters (individuals) (year 4)
+		1u   = MOOF platform untrained individuals [no train](year 4)
+		1z   = MOOF platform standard participant (year 4)
+
+		Individuals who could see crowd information
+		2a   = Crowd information w/o training (year 1)
+		2b   = Crowd information w/ probability training (year 1)
+		2c   = Crowd information w/ scenario training (year 1)
+
+		Prediction Markets
+		3a   = Lumenogic Prediction Market (year 2)
+		3b   = Lumenogic Prediction Market w/ training (year 2)
+		3b1  = Lumenogic Prediction Market (year 3) w/ pretty much no training (same market as 3b2)
+		3b2  = Lumenogic Prediction Market (year 3) w/ some training (same market as 3b1)
+		3e   = Lumenogic Prediction Market for non-citizens / overflow / experimental (year 3)
+		3f   = Inkling Control Prediction Market (year 3 & 4)
+		3g1  = Inkling Batch Auction w/o Training (year 4)
+		3g2  = Inkling Batch Auction w/ Training (year 4)
+		3s   = Inkling Super Market (year 4)
+		3txx = Inkling Prediction Market Teams, xx = team_id (year 4)
+
+		Teams (xx = team_id)
+		4axx = Teams without training (year 1 & 2)
+		4bxx = Teams with training(all years); Outcome Accountability (year 4)
+		4cxx = Teams with scenario training (year 1)
+		4dxx = Teams with training and facilitators (year 3)
+		4hx  = Teams with training; Hybrid Accountability (year 4)
+		4px  = Teams with training; Process Accountability (year 4)
+		4uxx = Team size experiment with smaller teams (year 4)
+		4wxx = Team size experiment with larger teams (year 4)
+
+		Superforecasters (xx = team_id)
+		5bxx = Superteams with training (year 2)
+		5dxx = Superteams with training and facilitators (year 3)
+		5sxx = Superteams with training; Outcome Accountability (year 4)
+
+Forecasts can be mapped to teams via the postfix in the `ctt` field.
+
+There are some additional questions, however: Was there a one-to-one
+mapping from a forecaster and a year to a team? Or could a forecaster
+be in multiple different teams during a single year? Or were there only
+stable teams for all years? I don't know, and online resources aren't
+very clear on this.<!--TODO: check a bit more deeply, maybe look what
+the data says-->
 
 It is possible to map users to teams via the
 `survey_fcasts_yr{1,2,3,4}.csv` files. Looking at those files, in year
@@ -58,8 +107,6 @@ In year three the user 1095 made forecasts both from groups 1 *and* 4,
 and in year 4 there are again no such duplicate groups.
 
 <!--TODO: message the GJP people about this?-->
-
-Three cheers for data clarity!
 
 Files
 ------
@@ -86,7 +133,7 @@ Then the file also contains some *other* characters that shouldn't belong
 there either.
 
 	tr -d '[ -~]\n\t' <ifps.csv | od -A x -t x1 | sed 's/^[0-9a-f]+ ?//' | tr ' ' '\n' | sort | uniq -c
-	      1 
+	      1
 	      1 aa
 	      1 db
 	      1 e5
@@ -151,3 +198,49 @@ traders:
 
 * The field `Tru.Belief` in the files `pm_transactions.lum1.yr3.csv`, `pm_transactions.lum2.yr3.csv` and `pm_transactions.lum2a.yr3.csv`
 * The field `probability_estimate` in the files `pm_transactions.inkling.yr3.csv`
+
+In the `survey_fcasts.yr{1,2,3,4}.csv` and `ifps.csv` files, sets of questions that
+are conditional on other questions are designated by the `ifp_id` having
+the postfix `-{1,2,3,4,5}`. However, in the prediction market data these
+are not distinguished.
+
+For example, in the `ifps.csv` file, we find the following questions for the prefix `1306-`:
+
+	>>> np.array(questions.loc[questions['question_id'].isin(['1306-1', '1306-2', '1306-3'])]['options'])
+		array(['If the Air Quality Index in Beijing exceeds 400 again beforehand :  (a) Yes, (b) No',
+		'If the Air Quality Index in Beijing does not exceed 400 again beforehand :  (a) Yes, (b) No'],
+		dtype=object)
+
+However, we don't find the questions with the postfix on the markets:
+
+	>>> market_forecasts.loc[market_forecasts['question_id']=='1306-1']
+Empty DataFrame
+Columns: [timestamp, question_id, outcome, user_id, op_type, order_id, isbuy, isLong, with_mm, by_agent, matching_order_id, price_before_prob, quantity, price_after_prob, trade_qty, probability_estimate, low_fuse, max_bid, min_ask, high_fuse, min_qty, divest_only]
+Index: []
+
+Instead, the variants of the question are subsumed under one in the market:
+
+	>>> market_forecasts.loc[market_forecasts['question_id']==1306]
+                timestamp  question_id outcome  user_id       op_type  order_id isbuy isLong  ...  trade_qty probability_estimate  low_fuse  max_bid  min_ask  high_fuse  min_qty  divest_only
+	51462 2013-11-20 12:43:45         1306       a     2700   orderCreate   33885.0  True   True  ...        NaN                 80.0       NaN      NaN      NaN        NaN      NaN          NaN
+	...                   ...          ...     ...      ...           ...       ...   ...    ...  ...        ...                  ...       ...      ...      ...        ...      ...          ...
+	72777 2014-01-14 03:50:30         1306       a     8449   orderCreate   48259.0  True  False  ...        NaN                  2.0       NaN      NaN      NaN        NaN      NaN          NaN
+	[420 rows x 22 columns]
+
+Unfortunately, I don't know how this was handled internally.
+
+#### `pm_transactions.inkling.yr3.csv`
+
+We again have a problem with non-ASCII characters.
+
+	$ tr -d -- '-;_+$&()[]%/:*?.",A-Za-z0-9\n ' <pm_transactions.inkling.yr3.csv | tr -d "'" | sed 's/.*/&\n/g' | uniq | od -A x -t x1z -v
+	000000 0a 8c 0a                                         >...<
+	000003
+
+(In reality there's more here, but apparently `uniq` can't deal with
+nonprintable lines).
+
+We again deal with this via `tr`:
+
+	tr -dc '[ -~]' <pm_transactions.inkling.yr3.csv >pm_transactions.inkling.yr3_new.csv
+	mv pm_transactions.inkling.yr3_new.csv pm_transactions.inkling.yr3.csv
