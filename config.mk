@@ -2,4 +2,5 @@ MARKDOWN=markdown
 
 CONF=config.mk header.html main.css
 
-HTML=summary.html
+HTML=summary.html \
+	documentation.html

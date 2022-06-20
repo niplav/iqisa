@@ -55,7 +55,7 @@ year3_data_changes={
 }
 
 year4_data_changes={
-	'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name'],
+	'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name', 'insert_outcomes'],
 	'column_rename': {
 		'Trade.ID': 'trade_id',
 		'Market.Name': 'market_name',
@@ -75,8 +75,8 @@ year4_data_changes={
 market_files={
 	'./data/pm_transactions.lum1.yr2.csv': year2_data_changes,
 	'./data/pm_transactions.lum2.yr2.csv': 	year2_data_changes,
-	'./data/pm_transactions.lum2a.yr3.csv': year3_data_changes,
 	'./data/pm_transactions.lum1.yr3.csv': year3_data_changes,
+	'./data/pm_transactions.lum2a.yr3.csv': year3_data_changes,
 	'./data/pm_transactions.lum2.yr3.csv': {
 		'fixes': ['timestamp', 'question_id_no_zero', 'price_before_100', 'prob_est_100', 'question_id_str'],
 		'column_rename': {
@@ -105,7 +105,7 @@ market_files={
 		}
 	},
 	'./data/pm_transactions.inkling.yr3.csv': {
-		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc'],
+		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'id_by_name'],
 		'column_rename': {
 			'trade.id': 'trade_id',
 			'market.name': 'market_name',
@@ -120,7 +120,7 @@ market_files={
 		}
 	},
 	'./data/pm_transactions.teams.yr4.csv': {
-		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name'],
+		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name', 'insert_outcome'],
 		'column_rename': {
 			'Trade.ID': 'trade_id',
 			'Market.Name': 'market_name',
@@ -147,10 +147,20 @@ def extract_id(s):
 	p=re.compile('^[0-9]+')
 	return str(p.findall(s)[0])
 
+def simplify_id(s):
+	p=re.compile('^[0-9]+')
+	return int(p.findall(s)[0]) if type(s)==str else s
+
+# Is it possible that in the datasets where 'outcome' is a field, it doesn't
+# refer to the actual outcome, but to the option that was bet on?
+
 def get_market_forecasts():
 	market_forecasts=pd.DataFrame()
+
+	questions=get_questions()
+	questions.loc[:,'question_id']=questions['question_id'].map(simplify_id)
+
 	for f in market_files.keys():
-		print(f)
 		market=pd.read_csv(f)
 		market=market.rename(columns=market_files[f]['column_rename'], errors='raise')
 
@@ -177,7 +187,20 @@ def get_market_forecasts():
 			market['prob_est']=market['prob_est'].map(lambda x: float(x))/100
 		if 'question_id_str' in market_files[f]['fixes']:
 			market['question_id']=market['question_id'].map(lambda x: int(x) if type(x)==str else x)
+		if 'id_by_name' in market_files[f]['fixes']:
+			q_texts=questions.loc[questions['q_text'].isin(market['market_name'])][['question_id','q_text','outcome']]
+			market=pd.merge(market, q_texts, left_on='market_name', right_on='q_text', how='inner')
 
+			market.pop('q_text')
+
+			# TODO: this leaves the data with too many rows!
+			# Somehow the join here is still "too big" :-$
+
+		if 'insert_outcomes' in market_files[f]['fixes']:
+			q_outcomes=questions.loc[questions['question_id'].isin(market['question_id'])][['question_id','outcome']]
+			market=pd.merge(market, q_outcomes, on='question_id', how='inner')
+
+			# TODO: same as above :-/
 		market_forecasts=pd.concat([market_forecasts, market])
 
 	# prices in (-∞,0]∪[1,∞] are truncated to [MIN_PROB, 1-MIN_PROB]
@@ -212,7 +235,6 @@ def get_survey_forecasts():
 	survey_forecasts=pd.DataFrame()
 
 	for f in survey_files:
-		print(f)
 		survey_forecasts=pd.concat([survey_forecasts, pd.read_csv(f)])
 
 	survey_forecasts['timestamp']=pd.to_datetime(survey_forecasts['timestamp'])
@@ -221,12 +243,15 @@ def get_survey_forecasts():
 	survey_forecasts=survey_forecasts.rename(columns={'ifp_id': 'question_id', 'value': 'probability'}, errors="raise")
 
 	questions=get_questions()
-	survey_forecasts=pd.merge(survey_forecasts, questions, on='question_id')
 
-	unnecessary_columns=['q_text', 'q_desc', 'short_title', 'options']
+	survey_forecasts=pd.merge(survey_forecasts, questions, on='question_id', suffixes=(None, '_x'))
+
+	unnecessary_columns=['q_text', 'q_desc', 'short_title', 'options', 'q_status_x']
 
 	for c in unnecessary_columns:
 		survey_forecasts.pop(c)
+
+	survey_forecasts=survey_forecasts.rename(columns={'ctt': 'user_type'}, errors="raise")
 
 	survey_forecasts.loc[survey_forecasts['probability']==0, 'probability']=PROB_MARGIN
 	survey_forecasts.loc[survey_forecasts['probability']==1, 'probability']=1-PROB_MARGIN
@@ -235,7 +260,7 @@ def get_survey_forecasts():
 
 def frontfill_forecasts(forecasts):
 	"""forecasts should be a dataframe with at least these five fields:
-	question_id, user_id, timestamp, probability, date_closed"""
+	question_id, user_id, timestamp, probability"""
 	res=survey_forecasts.groupby(['question_id', 'user_id', 'answer_option']).apply(frontfill_group)
 	res.index=res.index.droplevel(['question_id', 'user_id', 'answer_option'])
 	return res
@@ -256,6 +281,7 @@ def calculate_aggregate_score(forecasts, aggregation_function, scoring_rule):
 	res=survey_forecasts.groupby(['question_id', 'answer_option']).apply(apply_aggregation, aggregation_function)
 	res.index=res.index.droplevel(['question_id', 'answer_option'])
 	res=res.groupby(['question_id']).apply(apply_score, scoring_rule)
+	res.index=res.index.droplevel(1)
 	return res
 
 def apply_aggregation(g, aggregation_function):
