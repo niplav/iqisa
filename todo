@@ -1,5 +1,18 @@
+Make fields for prediction market data and survey data consistent
+	What about prices before & after trades?
+
+Import all previously implemented aggregation & scoring rules
+	Also write an aggregation rule that takes into account previous performance by forecasters
+
+Finish documentation
+	Describe all fields returned by `get_survey_forecasts` and `get_market_forecasts`
+
+Market data
+	This lacks the options that were bet on (`answer_option`), why?
+		Could it be that `outcome` in some files is actually the answer option?
+	Why do we get more forecasts when we add question ids and outcomes?
+
 Better Brier score
 Get probabilities out of prediction market data
 Forecasters ranked by previous performance
-Make the thing a library
-Rewrite documentation comments
+Finally execute it on the whole data

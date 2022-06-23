@@ -214,9 +214,9 @@ For example, in the `ifps.csv` file, we find the following questions for the pre
 However, we don't find the questions with the postfix on the markets:
 
 	>>> market_forecasts.loc[market_forecasts['question_id']=='1306-1']
-Empty DataFrame
-Columns: [timestamp, question_id, outcome, user_id, op_type, order_id, isbuy, isLong, with_mm, by_agent, matching_order_id, price_before_prob, quantity, price_after_prob, trade_qty, probability_estimate, low_fuse, max_bid, min_ask, high_fuse, min_qty, divest_only]
-Index: []
+	Empty DataFrame
+	Columns: [timestamp, question_id, outcome, user_id, op_type, order_id, isbuy, isLong, with_mm, by_agent, matching_order_id, price_before_prob, quantity, price_after_prob, trade_qty, probability_estimate, low_fuse, max_bid, min_ask, high_fuse, min_qty, divest_only]
+	Index: []
 
 Instead, the variants of the question are subsumed under one in the market:
 
@@ -228,6 +228,16 @@ Instead, the variants of the question are subsumed under one in the market:
 	[420 rows x 22 columns]
 
 Unfortunately, I don't know how this was handled internally.
+
+#### Not Really Outcomes
+
+What is called `Outcome` or similar in the prediction market files is
+very likely not the outcome of the question, but the option that was
+bet on: For example in `pm_transactions.lum1.yr2.csv`, on question 1084,
+some bets are on outcome "a", others are on outcome "b".
+
+The actual outcomes of the questions should be then read from the
+`ifps.csv` file.
 
 #### `pm_transactions.inkling.yr3.csv`
 

@@ -8,10 +8,10 @@ import pandas as pd
 
 PROB_MARGIN=0.005
 
-survey_files=["./data/survey_fcasts.yr1.csv", "./data/survey_fcasts.yr2.csv", "./data/survey_fcasts.yr3.csv"]
-questions_files=["./data/ifps.csv"]
+survey_files=["./data/gjp/survey_fcasts.yr1.csv", "./data/gjp/survey_fcasts.yr2.csv", "./data/gjp/survey_fcasts.yr3.csv"]
+questions_files=["./data/gjp/ifps.csv"]
 
-year2_data_changes={
+year2_default_changes={
 	'fixes': ['timestamp', 'question_id_no_zero', 'price_before_100', 'question_id_str'],
 	'column_rename': {
 		'IFPID': 'question_id',
@@ -27,7 +27,8 @@ year2_data_changes={
 		'by.agent': 'by_agent',
 	}
 }
-year3_data_changes={
+
+year3_default_changes={
 	'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str'],
 	'column_rename': {
 		'IFPID': 'question_id',
@@ -54,8 +55,8 @@ year3_data_changes={
 	}
 }
 
-year4_data_changes={
-	'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name', 'insert_outcomes'],
+year4_default_changes={
+	'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name', 'insert_outcomes', 'option_from_stock_name'],
 	'column_rename': {
 		'Trade.ID': 'trade_id',
 		'Market.Name': 'market_name',
@@ -73,11 +74,11 @@ year4_data_changes={
 }
 
 market_files={
-	'./data/pm_transactions.lum1.yr2.csv': year2_data_changes,
-	'./data/pm_transactions.lum2.yr2.csv': 	year2_data_changes,
-	'./data/pm_transactions.lum1.yr3.csv': year3_data_changes,
-	'./data/pm_transactions.lum2a.yr3.csv': year3_data_changes,
-	'./data/pm_transactions.lum2.yr3.csv': {
+	'./data/gjp/pm_transactions.lum1.yr2.csv': year2_default_changes,
+	'./data/gjp/pm_transactions.lum2.yr2.csv': 	year2_default_changes,
+	'./data/gjp/pm_transactions.lum1.yr3.csv': year3_default_changes,
+	'./data/gjp/pm_transactions.lum2a.yr3.csv': year3_default_changes,
+	'./data/gjp/pm_transactions.lum2.yr3.csv': {
 		'fixes': ['timestamp', 'question_id_no_zero', 'price_before_100', 'prob_est_100', 'question_id_str'],
 		'column_rename': {
 			'IFPID': 'question_id',
@@ -104,8 +105,8 @@ market_files={
 			'Divest.Only': 'divest_only',
 		}
 	},
-	'./data/pm_transactions.inkling.yr3.csv': {
-		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'id_by_name'],
+	'./data/gjp/pm_transactions.inkling.yr3.csv': {
+		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'id_by_name', 'option_from_stock_name'],
 		'column_rename': {
 			'trade.id': 'trade_id',
 			'market.name': 'market_name',
@@ -119,8 +120,8 @@ market_files={
 			'gjp.user.id': 'user_id'
 		}
 	},
-	'./data/pm_transactions.teams.yr4.csv': {
-		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name', 'insert_outcome'],
+	'./data/gjp/pm_transactions.teams.yr4.csv': {
+		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name', 'insert_outcome', 'option_from_stock_name'],
 		'column_rename': {
 			'Trade.ID': 'trade_id',
 			'Market.Name': 'market_name',
@@ -137,10 +138,10 @@ market_files={
 			'GJP.User.ID': 'user_id'
 		}
 	},
-	'./data/pm_transactions.batch.notrain.yr4.csv': year4_data_changes,
-	'./data/pm_transactions.control.yr4.csv': year4_data_changes,
-	'./data/pm_transactions.batch.notrain.yr4.csv': year4_data_changes,
-	'./data/pm_transactions.supers.yr4.csv': year4_data_changes,
+	'./data/gjp/pm_transactions.batch.notrain.yr4.csv': year4_default_changes,
+	'./data/gjp/pm_transactions.control.yr4.csv': year4_default_changes,
+	'./data/gjp/pm_transactions.batch.notrain.yr4.csv': year4_default_changes,
+	'./data/gjp/pm_transactions.supers.yr4.csv': year4_default_changes,
 }
 
 def extract_id(s):
@@ -151,8 +152,31 @@ def simplify_id(s):
 	p=re.compile('^[0-9]+')
 	return int(p.findall(s)[0]) if type(s)==str else s
 
-# Is it possible that in the datasets where 'outcome' is a field, it doesn't
-# refer to the actual outcome, but to the option that was bet on?
+# the data has trades on markets, stock names (sn) are possibly substrings
+# of the options, preceded by the name of the option [a-e].
+# yeah, i don't know either why anyone would do this.
+
+def get_option_from_options(t):
+	n=t[1]
+	sn=t[0]
+	#for some reason (!?) the answer options may contain these
+	sne=re.escape(sn.replace('**', ''))
+	n=n.replace('**', '')
+	p=re.compile('\((.)\) ?'+sne)
+	finds=p.findall(n)
+	if len(finds)==1:
+		return finds[0]
+	# the conditional came to pass
+	p=re.compile(sne+'[^\(]+\((.)\)')
+	finds=p.findall(n)
+	if len(finds)==1:
+		return finds[0]
+	# the conditional didn't come to pass
+	p=re.compile('\((.)\)[^\(]+$')
+	finds=p.findall(n)
+	if len(finds)==1:
+		return finds[0]
+	return '' # give up, but this dsnesn't happen on the current data
 
 def get_market_forecasts():
 	market_forecasts=pd.DataFrame()
@@ -187,21 +211,30 @@ def get_market_forecasts():
 			market['prob_est']=market['prob_est'].map(lambda x: float(x))/100
 		if 'question_id_str' in market_files[f]['fixes']:
 			market['question_id']=market['question_id'].map(lambda x: int(x) if type(x)==str else x)
-		if 'id_by_name' in market_files[f]['fixes']:
-			q_texts=questions.loc[questions['q_text'].isin(market['market_name'])][['question_id','q_text','outcome']]
-			market=pd.merge(market, q_texts, left_on='market_name', right_on='q_text', how='inner')
-
-			market.pop('q_text')
+		if 'insert_outcome' in market_files[f]['fixes']:
+			q_outcomes=questions.loc[questions['question_id'].isin(market['question_id'])][['question_id', 'outcome']]
+			market=pd.merge(market, q_outcomes, on='question_id', how='inner')
 
 			# TODO: this leaves the data with too many rows!
 			# Somehow the join here is still "too big" :-$
 
-		if 'insert_outcomes' in market_files[f]['fixes']:
-			q_outcomes=questions.loc[questions['question_id'].isin(market['question_id'])][['question_id','outcome']]
-			market=pd.merge(market, q_outcomes, on='question_id', how='inner')
+		if 'id_by_name' in market_files[f]['fixes']:
+			q_texts=questions.loc[questions['q_text'].isin(market['market_name'])][['question_id','q_text']]
+			market=pd.merge(market, q_texts, left_on='market_name', right_on='q_text', how='inner')
 
-			# TODO: same as above :-/
-		market_forecasts=pd.concat([market_forecasts, market])
+			market.pop('q_text')
+
+		if 'option_from_stock_name' in market_files[f]['fixes']:
+			q_options=questions[['question_id','options']]
+			with_options=pd.merge(market, q_options, on='question_id', how='inner')
+			market['answer_option']=with_options[['stock_name', 'options']].apply(get_option_from_options, axis=1)
+
+		market_forecasts=pd.concat([market_forecasts, market], join='outer')
+
+	# add the some question-specific information to the trades
+	# TODO: I'm not actually sure this is correct!
+	# qdata=questions.loc[questions['question_id'].isin(market_forecasts['question_id'])][['question_id', 'date_closed', 'date_start', 'date_suspend', 'date_to_close', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']]
+	# market_forecasts=pd.merge(market_forecasts, qdata, on='question_id', how='inner')
 
 	# prices in (-∞,0]∪[1,∞] are truncated to [MIN_PROB, 1-MIN_PROB]
 
@@ -299,6 +332,12 @@ def arith_aggr(forecasts):
 
 def brier_score(probabilities, outcomes):
 	return np.mean((probabilities-outcomes)**2)
+
+def usuniq(l):
+	c=dict()
+	for e in l:
+		c[e]=True
+	return c.keys()
 
 survey_forecasts=get_survey_forecasts()
 questions=get_questions()
