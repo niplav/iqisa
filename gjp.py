@@ -12,9 +12,11 @@ survey_files=["./data/gjp/survey_fcasts.yr1.csv", "./data/gjp/survey_fcasts.yr2.
 questions_files=["./data/gjp/ifps.csv"]
 
 year2_default_changes={
-	'fixes': ['timestamp', 'question_id_no_zero', 'price_before_100', 'question_id_str'],
+	'fixes': ['timestamp', 'price_before_100', 'question_id_str', 'insert_outcomes'],
 	'column_rename': {
 		'IFPID': 'question_id',
+		# yes. I check, for example with question 1214-0, the outcome is b, but most of the trades are on 'a'.
+		'outcome': 'answer_option',
 		'user.ID': 'user_id',
 		'Op.Type': 'op_type',
 		'order.ID': 'order_id',
@@ -22,17 +24,18 @@ year2_default_changes={
 		'long': 'islong',
 		'with.MM': 'with_mm',
 		'matching.order.ID': 'matching_order_id',
-		'price': 'price_before_prob',
+		'price': 'probability',
 		'qty': 'quantity',
 		'by.agent': 'by_agent',
 	}
 }
 
 year3_default_changes={
-	'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str'],
+	'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str', 'insert_outcomes'],
 	'column_rename': {
 		'IFPID': 'question_id',
-		'Outcome': 'outcome',
+		# same as above
+		'Outcome': 'answer_option',
 		'User.ID': 'user_id',
 		'Op.Type': 'op_type',
 		'Order.ID': 'order_id',
@@ -41,9 +44,9 @@ year3_default_changes={
 		'With.MM': 'with_mm',
 		'By.Agent': 'by_agent',
 		'Matching.Order.ID': 'matching_order_id',
-		'Order.Price': 'price_before_prob',
+		'Order.Price': 'probability',
 		'Order.Qty': 'quantity',
-		'Trade.Price': 'price_after_prob',
+		'Trade.Price': 'prob_after_trade',
 		'Trade.Qty': 'trade_qty',
 		'Tru.Belief': 'prob_est',
 		'Low.Fuse': 'low_fuse',
@@ -58,7 +61,7 @@ year3_default_changes={
 year4_default_changes={
 	'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name', 'insert_outcomes', 'option_from_stock_name'],
 	'column_rename': {
-		'Trade.ID': 'trade_id',
+		'Trade.ID': 'order_id',
 		'Market.Name': 'market_name',
 		'Stock.Name': 'stock_name',
 		'Trade.Type': 'trade_type',
@@ -66,8 +69,8 @@ year4_default_changes={
 		'Spent': 'spent',
 		'Created.At': 'created_at',
 		'Filled.At': 'filled_at',
-		'Price.Before': 'price_before_prob',
-		'Price.After': 'price_after_prob',
+		'Price.Before': 'probability',
+		'Price.After': 'prob_after_trade',
 		'Probability.Estimate': 'prob_est',
 		'GJP.User.ID': 'user_id'
 	}
@@ -75,11 +78,11 @@ year4_default_changes={
 
 market_files={
 	'./data/gjp/pm_transactions.lum1.yr2.csv': year2_default_changes,
-	'./data/gjp/pm_transactions.lum2.yr2.csv': 	year2_default_changes,
+	'./data/gjp/pm_transactions.lum2.yr2.csv': year2_default_changes,
 	'./data/gjp/pm_transactions.lum1.yr3.csv': year3_default_changes,
 	'./data/gjp/pm_transactions.lum2a.yr3.csv': year3_default_changes,
 	'./data/gjp/pm_transactions.lum2.yr3.csv': {
-		'fixes': ['timestamp', 'question_id_no_zero', 'price_before_100', 'prob_est_100', 'question_id_str'],
+		'fixes': ['timestamp', 'price_before_100', 'prob_est_100', 'question_id_str'],
 		'column_rename': {
 			'IFPID': 'question_id',
 			'Outcome': 'outcome',
@@ -92,9 +95,9 @@ market_files={
 			'With.MM': 'with_mm',
 			'By.Agent': 'by_agent',
 			'Matching.Order.ID': 'matching_order_id',
-			'Order.Price': 'price_before_prob',
+			'Order.Price': 'probability',
 			'Order.Qty': 'quantity',
-			'Trade.Price': 'price_after_prob',
+			'Trade.Price': 'prob_after_trade',
 			'Trade.Qty': 'trade_qty',
 			'Tru.Belief': 'prob_est',
 			'Low.Fuse': 'low_fuse',
@@ -108,14 +111,14 @@ market_files={
 	'./data/gjp/pm_transactions.inkling.yr3.csv': {
 		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'id_by_name', 'option_from_stock_name'],
 		'column_rename': {
-			'trade.id': 'trade_id',
+			'trade.id': 'order_id',
 			'market.name': 'market_name',
 			'stock.name': 'stock_name',
 			'type': 'op_type',
 			'created.at': 'created_at',
 			'filled.at': 'filled_at',
-			'price_before': 'price_before_prob',
-			'price_after': 'price_after_prob',
+			'price_before': 'probability',
+			'price_after': 'prob_after_trade',
 			'probability_estimate': 'prob_est',
 			'gjp.user.id': 'user_id'
 		}
@@ -123,7 +126,7 @@ market_files={
 	'./data/gjp/pm_transactions.teams.yr4.csv': {
 		'fixes': ['created_date_us', 'filled_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name', 'insert_outcome', 'option_from_stock_name'],
 		'column_rename': {
-			'Trade.ID': 'trade_id',
+			'Trade.ID': 'order_id',
 			'Market.Name': 'market_name',
 			'Stock.Name': 'stock_name',
 			'Trade.Type': 'trade_type',
@@ -131,8 +134,8 @@ market_files={
 			'Spent': 'spent',
 			'Created.At': 'created_at',
 			'Filled.At': 'filled_at',
-			'Price.Before': 'price_before_prob',
-			'Price.After': 'price_after_prob',
+			'Price.Before': 'probability',
+			'Price.After': 'prob_after_trade',
 			'Probability.Estimate': 'prob_est',
 			'GJP.Team.ID': 'team_id',
 			'GJP.User.ID': 'user_id'
@@ -183,6 +186,7 @@ def get_market_forecasts():
 
 	questions=get_questions()
 	questions.loc[:,'question_id']=questions['question_id'].map(simplify_id)
+	questions=questions.loc[questions['q_status']!='voided']
 
 	for f in market_files.keys():
 		market=pd.read_csv(f)
@@ -197,16 +201,16 @@ def get_market_forecasts():
 		if 'timestamp' in market_files[f]['fixes']:
 			market['timestamp']=pd.to_datetime(market['timestamp'], dayfirst=True)
 		if 'price_before_perc' in market_files[f]['fixes']:
-			market['price_before_prob']=market['price_before_prob'].map(lambda x: float(x.replace('%', ''))/100)
+			market['probability']=market['probability'].map(lambda x: float(x.replace('%', ''))/100)
 		if 'price_after_perc' in market_files[f]['fixes']:
-			market['price_after_prob']=market['price_after_prob'].map(lambda x: float(x.replace('%', ''))/100)
+			market['prob_after_trade']=market['prob_after_trade'].map(lambda x: float(x.replace('%', ''))/100)
 		if 'prob_est_perc' in market_files[f]['fixes']:
 			strperc=market.loc[market['prob_est'].map(type)==str]
 			market.loc[market['prob_est'].map(type)==str, 'prob_est']=strperc['prob_est'].map(lambda x: np.nan if x=='no' else float(x.replace('%', ''))/100)
 		if 'price_before_100' in market_files[f]['fixes']:
-			market['price_before_prob']=market['price_before_prob'].map(lambda x: float(x))/100
+			market['probability']=market['probability'].map(lambda x: float(x))/100
 		if 'price_after_100' in market_files[f]['fixes']:
-			market['price_after_prob']=market['price_after_prob'].map(lambda x: float(x))/100
+			market['prob_after_trade']=market['prob_after_trade'].map(lambda x: float(x))/100
 		if 'prob_est_100' in market_files[f]['fixes']:
 			market['prob_est']=market['prob_est'].map(lambda x: float(x))/100
 		if 'question_id_str' in market_files[f]['fixes']:
@@ -237,14 +241,17 @@ def get_market_forecasts():
 	market_forecasts=pd.merge(market_forecasts, qdata, on='question_id', how='inner')
 	# prices in (-∞,0]∪[1,∞] are truncated to [MIN_PROB, 1-MIN_PROB]
 
-	market_forecasts.loc[market_forecasts['price_before_prob']<=0, 'price_before_prob']=PROB_MARGIN
-	market_forecasts.loc[market_forecasts['price_before_prob']>=1, 'price_before_prob']=1-PROB_MARGIN
+	market_forecasts.loc[market_forecasts['probability']<=0, 'probability']=PROB_MARGIN
+	market_forecasts.loc[market_forecasts['probability']>=1, 'probability']=1-PROB_MARGIN
 
-	market_forecasts.loc[market_forecasts['price_after_prob']<=0, 'price_after_prob']=PROB_MARGIN
-	market_forecasts.loc[market_forecasts['price_after_prob']>=1, 'price_after_prob']=1-PROB_MARGIN
+	market_forecasts.loc[market_forecasts['prob_after_trade']<=0, 'prob_after_trade']=PROB_MARGIN
+	market_forecasts.loc[market_forecasts['prob_after_trade']>=1, 'prob_after_trade']=1-PROB_MARGIN
 
 	market_forecasts.loc[market_forecasts['prob_est']<=0, 'prob_est']=PROB_MARGIN
 	market_forecasts.loc[market_forecasts['prob_est']>=1, 'prob_est']=1-PROB_MARGIN
+
+	new_market_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type', 'prob_est', 'prob_after_trade', 'order_id']
+	market_forecasts=market_forecasts.reindex(columns=new_market_index)
 
 	return market_forecasts
 
@@ -272,21 +279,19 @@ def get_survey_forecasts():
 	survey_forecasts['timestamp']=pd.to_datetime(survey_forecasts['timestamp'])
 	survey_forecasts['fcast_date']=pd.to_datetime(survey_forecasts['fcast_date'])
 
-	survey_forecasts=survey_forecasts.rename(columns={'ifp_id': 'question_id', 'value': 'probability'}, errors="raise")
+	survey_forecasts=survey_forecasts.rename(columns={'ifp_id': 'question_id', 'value': 'probability', 'team': 'team_id', 'ctt': 'user_type'}, errors="raise")
 
 	questions=get_questions()
 
 	survey_forecasts=pd.merge(survey_forecasts, questions, on='question_id', suffixes=(None, '_x'))
 
-	unnecessary_columns=['q_text', 'q_desc', 'short_title', 'options', 'q_status_x']
-
-	for c in unnecessary_columns:
-		survey_forecasts.pop(c)
-
-	survey_forecasts=survey_forecasts.rename(columns={'ctt': 'user_type'}, errors="raise")
+	new_survey_index=['question_id', 'user_id', 'user_type', 'team_id', 'probability', 'answer_option', ' timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
+	survey_forecasts=survey_forecasts.reindex(columns=new_survey_index)
 
 	survey_forecasts.loc[survey_forecasts['probability']==0, 'probability']=PROB_MARGIN
 	survey_forecasts.loc[survey_forecasts['probability']==1, 'probability']=1-PROB_MARGIN
+
+	survey_forecasts['user_id']=survey_forecasts['user_id'].map(lambda x: x if np.isnan(x) else x)
 
 	return survey_forecasts
 
@@ -333,10 +338,23 @@ def brier_score(probabilities, outcomes):
 	return np.mean((probabilities-outcomes)**2)
 
 def usuniq(l):
-	c=dict()
+	r=[]
+	nanfound=False
 	for e in l:
-		c[e]=True
-	return c.keys()
+		if type(e)==float:
+			if np.isnan(e) and nanfound:
+				continue
+			if np.isnan(e) and not nanfound:
+				nanfound=True
+				r.append(e)
+		if e in r:
+			continue
+		r.append(e)
+	return r
+
+def both(cn):
+	print(usuniq(market_forecasts[cn]))
+	print(usuniq(survey_forecasts[cn]))
 
 survey_forecasts=get_survey_forecasts()
 questions=get_questions()
