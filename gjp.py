@@ -150,7 +150,7 @@ def extract_id(s):
 
 def simplify_id(s):
 	p=re.compile('^[0-9]+')
-	return int(p.findall(s)[0]) if type(s)==str else s
+	return p.findall(s)[0] if type(s)==str else s
 
 # the data has trades on markets, stock names (sn) are possibly substrings
 # of the options, preceded by the name of the option [a-e].
@@ -210,7 +210,7 @@ def get_market_forecasts():
 		if 'prob_est_100' in market_files[f]['fixes']:
 			market['prob_est']=market['prob_est'].map(lambda x: float(x))/100
 		if 'question_id_str' in market_files[f]['fixes']:
-			market['question_id']=market['question_id'].map(lambda x: int(x) if type(x)==str else x)
+			market['question_id']=market['question_id'].map(str)
 		if 'insert_outcome' in market_files[f]['fixes']:
 			q_outcomes=questions.loc[questions['question_id'].isin(market['question_id'])][['question_id', 'outcome']]
 			market=pd.merge(market, q_outcomes, on='question_id', how='inner')
@@ -233,9 +233,8 @@ def get_market_forecasts():
 
 	# add the some question-specific information to the trades
 	# TODO: I'm not actually sure this is correct!
-	# qdata=questions.loc[questions['question_id'].isin(market_forecasts['question_id'])][['question_id', 'date_closed', 'date_start', 'date_suspend', 'date_to_close', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']]
-	# market_forecasts=pd.merge(market_forecasts, qdata, on='question_id', how='inner')
-
+	qdata=questions.loc[questions['question_id'].isin(market_forecasts['question_id'])][['question_id', 'date_closed', 'date_start', 'date_suspend', 'date_to_close', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']]
+	market_forecasts=pd.merge(market_forecasts, qdata, on='question_id', how='inner')
 	# prices in (-∞,0]∪[1,∞] are truncated to [MIN_PROB, 1-MIN_PROB]
 
 	market_forecasts.loc[market_forecasts['price_before_prob']<=0, 'price_before_prob']=PROB_MARGIN
