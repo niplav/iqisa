@@ -1,7 +1,10 @@
+Iqisa Documentation
+======================
+
 Data Structures
 ----------------
 
-### Forecast Data General Structure
+### Comparable Forecast Data General Structure
 
 The data returned by any function that loads data from a file with
 forecasts or prices from a prediction market, in the format of a pandas
@@ -10,77 +13,151 @@ slightly different, but they share many fields, which are described here.
 
 Those fields are:
 
+<!--TODO: make this a table-->
+
 * `question_id`: The unique ID of the question, type `str`. Follows the format `[0-9]{4}`.
 * `user_id`: The unique ID of the user who made the forecast, type `int`.
 * `team_id`: The ID of the team the user was in, type `int64`. The team "DEFAULT" was given the ID 0.
 * `probability`: The probability assigned in the forecast, type `float64`. Probabilities (or probabilities implied by market prices) ≥1 were changed to 0.995, and ≤0 to 0.005.
 * `answer_option`: The answer option selected by the user, type `str`. One of 'a', 'b', 'c', 'd' or 'e' (or rarely `np.nan` for market data).
 * `timestamp`: The time at which the forecast/trade was made, type `datetime64[ns]`.
-* `outcome`:
-* `date_start`:
-* `date_suspend`:
-* `date_to_close`:
-* `date_closed`:
-* `days_open`:
-* `n_opts`:
-* `options`:
-* `q_status`:
-* `q_type`:
-* `cond`: The index of the question as a conditional question. Some questions are conditional, these conditional questions can be grouped together. (Example (not in the dataset): "If the air pollution in Beijing is {higher, lower} than 15 PM 2.5 on average in 2012 [this is the conditional], will the average life expectancy be higher than in 2010? [this is the question]"). These two questions would have values `1` and `2` on the `cond` column.
-	* Apparently questions which are not conditional receive a value of 1 on the `cond` column, even though their `question_id` has the postfix `-0`.
-* `team`: The ID of the team the user was in. Number between 1 and 50.
-* `training`: The amount of training the user received. String in the format `[a-d]`, described further in `user_type`. I don't know what `d` refers to here.
-* `user_type`: The type of user, as a string. Follows an idiosyncratic format, the full description from the README of the original data explains it (the prediction market types with prefix '3' are not used in this dataset):
-	* Individuals
-		* 1a   = Individual w/o training (all years)
-		* 1b   = Individual w/ probability training (all years)
-		* 1c   = Individual w/ scenario training (year 1)
-		* 1h   = Individual w/ training; Hybrid-Accountability (year 4)
-		* 1n   = MOOF platform with NCBP scoring (year 4)
-		* 1p   = Individual w/ training; Process-Accountability (year 4)
-		* 1r1  = MOOF raters (individuals) (year 4)
-		* 1u   = MOOF platform untrained individuals [no train](year 4)
-		* 1z   = MOOF platform standard participant (year 4)
-	* Individuals who could see crowd information
-		* 2a   = Crowd information w/o training (year 1)
-		* 2b   = Crowd information w/ probability training (year 1)
-		* 2c   = Crowd information w/ scenario training (year 1)
-	* Teams (xx = team\_id)
-		* 4axx = Teams without training (year 1 & 2)
-		* 4bxx = Teams with training(all years); Outcome Accountability (year 4)
-		* 4cxx = Teams with scenario training (year 1)
-		* 4dxx = Teams with training and facilitators (year 3)
-		* 4hx  = Teams with training; Hybrid Accountability (year 4)
-		* 4px  = Teams with training; Process Accountability (year 4)
-		* 4uxx = Team size experiment with smaller teams (year 4)
-		* 4wxx = Team size experiment with larger teams (year 4)
-	* Superforecasters (xx = team\_id)
-		* 5bxx = Superteams with training (year 2)
-		* 5dxx = Superteams with training and facilitators (year 3)
-		* 5sxx = Superteams with training; Outcome Accountability (year 4)
-* `forecast_id`
-* `fcast_type`
-* `answer_option`
-* `probability`
-* `fcast_date`
-* `expertise`
-* `q_status`
-* `viewtime`
-* `year`
-* `timestamp`
-* `q_type`
-* `date_start`
-* `date_suspend`
-* `date_to_close`
-* `date_closed`
-* `outcome`
-* `days_open`
-* `n_opts`
+* `outcome`: The outcome of the question, type `str`. One of 'a', 'b', 'c', 'd', or 'e' (or rarely `np.nan`, in the case of voided questions).
+* `date_start`: The date at which the question was opened, i.e. at which forecasts could start. Type `datetime64[ns]`
+* `date_suspend`: The datetime at which the question was suspended, i.e. at which no further forecasts were possible. Type `datetime64[ns]`. The biggest difference from `date_closed` seems to be that it also includes the time of closures.
+* `date_to_close`: The planned closing date of the question, type `datetime64[ns]`.
+* `date_closed`: The datetime at which the question was closed, type `datetime64[ns]`.
+* `days_open`: The days for which the quesion was open, type `float64`.
+* `n_opts`: The number of options the question had, type `int64`.
+* `options`: A string containing a description of the different possible options, type `str`.
+* `q_status`: The status of the question the forecast was made on, type `str`. One of 'closed', 'voided' or 'active'.
+* `q_type`: The type of the question, type `int64`. Integer between 0 and 6 (inclusive).
+	* 0: regular binomial or multinomial question
+	* 1-5: conditional question, index designated by the specific type (`q_type` 2: 2nd conditional question)
+	* 6: Ordered multinomial question
+
+### `survey_files`
+
+A list containing the names of all files in the dataset that contain
+data from surveys.
+
+### `market_files`
+
+A list containing the names of all files in the dataset that contain
+trades on prediction markets.
 
 Functions
 ----------
 
-### `frontfill_forecasts`
+### `get_comparable_survey_forecasts(files)`
+
+Reads & returns a datastructure containing all forecasts reported by
+forecasters in surveys (that is, all forecasts not made on a prediction
+market).
+
+#### Arguments
+
+* `files`: a list of strings, all containing the names of files containing data from survey forecasts.
+
+#### Returns
+
+A pandas DataFrame of the of the format described
+[here](#Comparable-Forecast-Data-General-Structure).
+
+#### Example
+
+Load the data from all files containing survey data:
+
+	survey_forecasts=get_comparable_survey_forecasts(survey_files)
+
+### `get_comparable_market_forecasts(files)`
+
+Reads & returns a datastructure containing all forecasts that can be
+computed from the prices on the prediction markets collected in the
+files in `files`.
+
+#### Arguments
+
+* `files`: a list of strings, all names of files containing data from prediction market data.
+
+#### Returns
+
+A pandas DataFrame of the of the format described
+[here](#Comparable-Forecast-Data-General-Structure).
+
+#### Example
+
+Load the data from all files containing survey data:
+
+	market_forecasts=get_comparable_market_forecasts(market_files)
+
+### `get_survey_forecasts(files)`
+
+Reads & returns a datastructure containing all forecasts reported by
+forecasters in surveys.
+
+#### Arguments
+
+* `files`: a list of strings, all containing the names of files containing data from survey forecasts, from which the resulting data will be read.
+
+### Returns
+
+A pandas DataFrame that is a superframe (additional
+columns, but no additional rows) of the frame returned by
+[`get_comparable_survey_forecasts`](#getcomparablesurveyforecastsfiles).
+Additional columns it contains:
+
+* `forecast_id`
+* `fcast_type`
+* `fcast_date`
+* `expertise`
+* `viewtime`
+* `year`
+* `q_text`
+* `q_desc`
+* `short_title`
+
+### `get_market_forecasts(files)`
+
+Reads & returns a datastructure containing all forecasts implied by
+prices on prediction markets.
+
+#### Arguments
+
+* `files`: a list of strings, all containing the names of files containing data from markets, from which the resulting data will be read.
+
+### Returns
+
+A pandas DataFrame that is a superframe (additional
+columns, but no additional rows) of the frame returned by
+[`get_comparable_market_forecasts`](#getcomparablemarketforecastsfiles).
+Additional columns it contains:
+
+* `islong`
+* `by_agent`
+* `op_type`
+* `spent`
+* `min_qty`
+* `trade_type`
+* `with_mm`
+* `divest_only`
+* `prob_after_trade`
+* `matching_order_id`
+* `high_fuse`
+* `stock_name`
+* `low_fuse`
+* `created_at`
+* `filled_at`
+* `trade_qty`
+* `isbuy`
+* `prob_est`
+* `market_name`
+* `quantity`
+* `min_ask`
+* `experience`
+* `max_bid`
+* `order_id`
+
+### `frontfill_forecasts(forecasts)`
 
 __Warning__: This function makes the dataset given to it ~100 times
 bigger, which might lead to running of out RAM.
@@ -90,7 +167,7 @@ repeated daily until they make a new forecast or the question is closed.
 
 #### Arguments
 
-A DataFrame of the format described [here](#Returns_2).
+A DataFrame of the format described [here](#Comparable-Forecast-Data-General-Structure).
 
 Specifically, the DataFrame should have the following columns:
 
@@ -102,7 +179,7 @@ Specifically, the DataFrame should have the following columns:
 
 #### Returns
 
-A DataFrame of the formate described [here](#Returns_2).
+A DataFrame of the format described [here](#Comparable-Forecast-Data-General-Structure).
 
 #### Example
 
@@ -115,14 +192,14 @@ A DataFrame of the formate described [here](#Returns_2).
 	>>> len(survey_forecasts)
 	1095705
 
-### `calculate_aggregate_score`
+### `calculate_aggregate_score(forecasts, aggregation_function, scoring_rule)`
 
 Aggregate and score predictions on questions, methods can be given by
 the user.
 
 #### Arguments
 
-* First argument (`forecasts`): A DataFrame of the format described [here](#Returns_2), needs the following columns:
+* First argument (`forecasts`): A DataFrame of the format described [here](#Comparable-Forecast-Data-General-Structure), needs the following columns:
 	* `question_id`
 	* `timestamp`
 	* `probability`
@@ -178,15 +255,3 @@ We can now calculate the average Brier score on all questions:
 	50%      0.071521
 	75%      0.250116
 	max      0.523622
-
-### `get_survey_forecasts`
-
-Reads & returns a datastructure containing all forecasts reported by
-forecasters in surveys (that is, all forecasts not made on a prediction
-market).
-
-#### Arguments
-
-None.
-
-#### Returns

@@ -9,6 +9,8 @@ import pandas as pd
 
 PROB_MARGIN=0.005
 
+comparable_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
+
 survey_files=['./data/gjp/survey_fcasts.yr1.csv', './data/gjp/survey_fcasts.yr2.csv', './data/gjp/survey_fcasts.yr3.csv']
 market_files=['./data/gjp/pm_transactions.lum1.yr2.csv', './data/gjp/pm_transactions.lum2.yr2.csv', './data/gjp/pm_transactions.lum1.yr3.csv', './data/gjp/pm_transactions.lum2a.yr3.csv', './data/gjp/pm_transactions.lum2.yr3.csv', './data/gjp/pm_transactions.inkling.yr3.csv', './data/gjp/pm_transactions.control.yr4.csv', './data/gjp/pm_transactions.batch.train.yr4.csv', './data/gjp/pm_transactions.batch.notrain.yr4.csv', './data/gjp/pm_transactions.supers.yr4.csv', './data/gjp/pm_transactions.teams.yr4.csv']
 questions_files=['./data/gjp/ifps.csv']
@@ -247,23 +249,26 @@ def get_market_forecasts(files):
 
 	# add the some question-specific information to the trades
 	# TODO: I'm not actually sure this is correct!
-	qdata=questions.loc[questions['question_id'].isin(market_forecasts['question_id'])][['question_id', 'date_closed', 'date_start', 'date_suspend', 'date_to_close', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']]
-	market_forecasts=pd.merge(market_forecasts, qdata, on='question_id', how='inner')
-	# prices in (-∞,0]∪[1,∞] are truncated to [MIN_PROB, 1-MIN_PROB]
 
+	qdata=questions.loc[questions['question_id'].isin(market_forecasts['question_id'])][['question_id', 'date_closed', 'date_start', 'date_suspend', 'date_to_close', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']]
+
+	market_forecasts=pd.merge(market_forecasts, qdata, on='question_id', how='inner')
+
+	# prices in (-∞,0]∪[1,∞] are truncated to [MIN_PROB, 1-MIN_PROB]
 	market_forecasts.loc[market_forecasts['probability']<=0, 'probability']=PROB_MARGIN
 	market_forecasts.loc[market_forecasts['probability']>=1, 'probability']=1-PROB_MARGIN
-
 	market_forecasts.loc[market_forecasts['prob_after_trade']<=0, 'prob_after_trade']=PROB_MARGIN
 	market_forecasts.loc[market_forecasts['prob_after_trade']>=1, 'prob_after_trade']=1-PROB_MARGIN
-
 	market_forecasts.loc[market_forecasts['prob_est']<=0, 'prob_est']=PROB_MARGIN
 	market_forecasts.loc[market_forecasts['prob_est']>=1, 'prob_est']=1-PROB_MARGIN
 
-	new_market_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type', 'prob_est', 'prob_after_trade', 'order_id']
-	market_forecasts=market_forecasts.reindex(columns=new_market_index)
-
 	market_forecasts['team_id']=market_forecasts['team_id'].convert_dtypes(convert_integer=True)
+
+	return market_forecasts
+
+def get_comparable_market_forecasts(files):
+	market_forecasts=get_market_forecasts(files)
+	market_forecasts=market_forecasts.reindex(columns=comparable_index)
 
 	return market_forecasts
 
@@ -300,14 +305,19 @@ def get_survey_forecasts(files):
 
 	survey_forecasts=pd.merge(survey_forecasts, questions, on=['question_id', 'q_type'], suffixes=(None, '_x'))
 
-	new_survey_index=['question_id', 'user_id', 'user_type', 'team_id', 'probability', 'answer_option', ' timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
-	survey_forecasts=survey_forecasts.reindex(columns=new_survey_index)
+	survey_forecasts.pop('q_status_x')
 
 	survey_forecasts.loc[survey_forecasts['probability']==0, 'probability']=PROB_MARGIN
 	survey_forecasts.loc[survey_forecasts['probability']==1, 'probability']=1-PROB_MARGIN
 
 	survey_forecasts['user_id']=survey_forecasts['user_id'].convert_dtypes(convert_integer=True)
 	survey_forecasts['team_id']=survey_forecasts['team_id'].convert_dtypes(convert_integer=True)
+
+	return survey_forecasts
+
+def get_comparable_survey_forecasts(files):
+	survey_forecasts=get_survey_forecasts(files)
+	survey_forecasts=survey_forecasts.reindex(columns=comparable_index)
 
 	return survey_forecasts
 
@@ -347,35 +357,6 @@ def apply_score(g, scoring_rule):
 	options=np.array(g['answer_option'])
 	return pd.DataFrame({'score': np.array([scoring_rule(probabilities, outcomes==options)])})
 
-def arith_aggr(forecasts):
-	return np.array([np.mean(forecasts['probability'])])
-
-def geom_aggr(forecasts):
-	return np.array([statistics.geometric_mean(forecasts['probability'])])
-
-def brier_score(probabilities, outcomes):
-	return np.mean((probabilities-outcomes)**2)
-
-def usuniq(l):
-	r=[]
-	nanfound=False
-	for e in l:
-		if type(e)==float:
-			if np.isnan(e) and nanfound:
-				continue
-			if np.isnan(e) and not nanfound:
-				nanfound=True
-				r.append(e)
-		if e in r:
-			continue
-		r.append(e)
-	return r
-
-def both(cn):
-	print(usuniq(market_forecasts[cn]))
-	print(usuniq(survey_forecasts[cn]))
-
-survey_forecasts=get_survey_forecasts(survey_files)
 questions=get_questions()
-market_forecasts=get_market_forecasts(market_files)
-#market_forecasts=get_market_forecasts(['./data/gjp/pm_transactions.lum2.yr3.csv'])
+survey_forecasts=get_comparable_survey_forecasts(survey_files)
+market_forecasts=get_comparable_market_forecasts(market_files)
