@@ -45,3 +45,4 @@ Market data
 Better Brier score
 Forecasters ranked by previous performance
 Finally execute it on the whole data
+Convert types using convert_dtypes

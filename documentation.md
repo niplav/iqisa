@@ -1,3 +1,82 @@
+Data Structures
+----------------
+
+### Forecast Data General Structure
+
+The data returned by any function that loads data from a file with
+forecasts or prices from a prediction market, in the format of a pandas
+DataFrame. The data for prediction markets and survey forecasts is
+slightly different, but they share many fields, which are described here.
+
+Those fields are:
+
+* `question_id`: The unique ID of the question, type `str`. Follows the format `[0-9]{4}`.
+* `user_id`: The unique ID of the user who made the forecast, type `int`.
+* `team_id`: The ID of the team the user was in, type `int64`. The team "DEFAULT" was given the ID 0.
+* `probability`: The probability assigned in the forecast, type `float64`. Probabilities (or probabilities implied by market prices) ≥1 were changed to 0.995, and ≤0 to 0.005.
+* `answer_option`: The answer option selected by the user, type `str`. One of 'a', 'b', 'c', 'd' or 'e' (or rarely `np.nan` for market data).
+* `timestamp`: The time at which the forecast/trade was made, type `datetime64[ns]`.
+* `outcome`:
+* `date_start`:
+* `date_suspend`:
+* `date_to_close`:
+* `date_closed`:
+* `days_open`:
+* `n_opts`:
+* `options`:
+* `q_status`:
+* `q_type`:
+* `cond`: The index of the question as a conditional question. Some questions are conditional, these conditional questions can be grouped together. (Example (not in the dataset): "If the air pollution in Beijing is {higher, lower} than 15 PM 2.5 on average in 2012 [this is the conditional], will the average life expectancy be higher than in 2010? [this is the question]"). These two questions would have values `1` and `2` on the `cond` column.
+	* Apparently questions which are not conditional receive a value of 1 on the `cond` column, even though their `question_id` has the postfix `-0`.
+* `team`: The ID of the team the user was in. Number between 1 and 50.
+* `training`: The amount of training the user received. String in the format `[a-d]`, described further in `user_type`. I don't know what `d` refers to here.
+* `user_type`: The type of user, as a string. Follows an idiosyncratic format, the full description from the README of the original data explains it (the prediction market types with prefix '3' are not used in this dataset):
+	* Individuals
+		* 1a   = Individual w/o training (all years)
+		* 1b   = Individual w/ probability training (all years)
+		* 1c   = Individual w/ scenario training (year 1)
+		* 1h   = Individual w/ training; Hybrid-Accountability (year 4)
+		* 1n   = MOOF platform with NCBP scoring (year 4)
+		* 1p   = Individual w/ training; Process-Accountability (year 4)
+		* 1r1  = MOOF raters (individuals) (year 4)
+		* 1u   = MOOF platform untrained individuals [no train](year 4)
+		* 1z   = MOOF platform standard participant (year 4)
+	* Individuals who could see crowd information
+		* 2a   = Crowd information w/o training (year 1)
+		* 2b   = Crowd information w/ probability training (year 1)
+		* 2c   = Crowd information w/ scenario training (year 1)
+	* Teams (xx = team\_id)
+		* 4axx = Teams without training (year 1 & 2)
+		* 4bxx = Teams with training(all years); Outcome Accountability (year 4)
+		* 4cxx = Teams with scenario training (year 1)
+		* 4dxx = Teams with training and facilitators (year 3)
+		* 4hx  = Teams with training; Hybrid Accountability (year 4)
+		* 4px  = Teams with training; Process Accountability (year 4)
+		* 4uxx = Team size experiment with smaller teams (year 4)
+		* 4wxx = Team size experiment with larger teams (year 4)
+	* Superforecasters (xx = team\_id)
+		* 5bxx = Superteams with training (year 2)
+		* 5dxx = Superteams with training and facilitators (year 3)
+		* 5sxx = Superteams with training; Outcome Accountability (year 4)
+* `forecast_id`
+* `fcast_type`
+* `answer_option`
+* `probability`
+* `fcast_date`
+* `expertise`
+* `q_status`
+* `viewtime`
+* `year`
+* `timestamp`
+* `q_type`
+* `date_start`
+* `date_suspend`
+* `date_to_close`
+* `date_closed`
+* `outcome`
+* `days_open`
+* `n_opts`
+
 Functions
 ----------
 
@@ -111,60 +190,3 @@ market).
 None.
 
 #### Returns
-
-A DataFrame.
-
-That DataFrame has the following fields:
-
-* `question_id`: The unique ID of the question. Follows the format `[0-9]{4}-[0-6]`. The number after the dash signifies the type of question (0 for binary questions, 1-5 for conditional questions, and 6 for ordered categorical questions).
-* `cond`: The index of the question as a conditional question. Some questions are conditional, these conditional questions can be grouped together. (Example (not in the dataset): "If the air pollution in Beijing is {higher, lower} than 15 PM 2.5 on average in 2012 [this is the conditional], will the average life expectancy be higher than in 2010? [this is the question]"). These two questions would have values `1` and `2` on the `cond` column.
-	* Apparently questions which are not conditional receive a value of 1 on the `cond` column, even though their `question_id` has the postfix `-0`.
-* `team`: The ID of the team the user was in. Number between 1 and 50.
-* `training`: The amount of training the user received. String in the format `[a-d]`, described further in `user_type`. I don't know what `d` refers to here.
-* `user_type`: The type of user, as a string. Follows an idiosyncratic format, the full description from the README of the original data explains it (the prediction market types with prefix '3' are not used in this dataset):
-	* Individuals
-		* 1a   = Individual w/o training (all years)
-		* 1b   = Individual w/ probability training (all years)
-		* 1c   = Individual w/ scenario training (year 1)
-		* 1h   = Individual w/ training; Hybrid-Accountability (year 4)
-		* 1n   = MOOF platform with NCBP scoring (year 4)
-		* 1p   = Individual w/ training; Process-Accountability (year 4)
-		* 1r1  = MOOF raters (individuals) (year 4)
-		* 1u   = MOOF platform untrained individuals [no train](year 4)
-		* 1z   = MOOF platform standard participant (year 4)
-	* Individuals who could see crowd information
-		* 2a   = Crowd information w/o training (year 1)
-		* 2b   = Crowd information w/ probability training (year 1)
-		* 2c   = Crowd information w/ scenario training (year 1)
-	* Teams (xx = team\_id)
-		* 4axx = Teams without training (year 1 & 2)
-		* 4bxx = Teams with training(all years); Outcome Accountability (year 4)
-		* 4cxx = Teams with scenario training (year 1)
-		* 4dxx = Teams with training and facilitators (year 3)
-		* 4hx  = Teams with training; Hybrid Accountability (year 4)
-		* 4px  = Teams with training; Process Accountability (year 4)
-		* 4uxx = Team size experiment with smaller teams (year 4)
-		* 4wxx = Team size experiment with larger teams (year 4)
-	* Superforecasters (xx = team\_id)
-		* 5bxx = Superteams with training (year 2)
-		* 5dxx = Superteams with training and facilitators (year 3)
-		* 5sxx = Superteams with training; Outcome Accountability (year 4)
-* `user_id`
-* `forecast_id`
-* `fcast_type`
-* `answer_option`
-* `probability`
-* `fcast_date`
-* `expertise`
-* `q_status`
-* `viewtime`
-* `year`
-* `timestamp`
-* `q_type`
-* `date_start`
-* `date_suspend`
-* `date_to_close`
-* `date_closed`
-* `outcome`
-* `days_open`
-* `n_opts`

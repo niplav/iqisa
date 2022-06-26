@@ -2,14 +2,16 @@ import re
 import time
 import random
 import math
+import statistics
 import datetime as dt
 import numpy as np
 import pandas as pd
 
 PROB_MARGIN=0.005
 
-survey_files=["./data/gjp/survey_fcasts.yr1.csv", "./data/gjp/survey_fcasts.yr2.csv", "./data/gjp/survey_fcasts.yr3.csv"]
-questions_files=["./data/gjp/ifps.csv"]
+survey_files=['./data/gjp/survey_fcasts.yr1.csv', './data/gjp/survey_fcasts.yr2.csv', './data/gjp/survey_fcasts.yr3.csv']
+market_files=['./data/gjp/pm_transactions.lum1.yr2.csv', './data/gjp/pm_transactions.lum2.yr2.csv', './data/gjp/pm_transactions.lum1.yr3.csv', './data/gjp/pm_transactions.lum2a.yr3.csv', './data/gjp/pm_transactions.lum2.yr3.csv', './data/gjp/pm_transactions.inkling.yr3.csv', './data/gjp/pm_transactions.control.yr4.csv', './data/gjp/pm_transactions.batch.train.yr4.csv', './data/gjp/pm_transactions.batch.notrain.yr4.csv', './data/gjp/pm_transactions.supers.yr4.csv', './data/gjp/pm_transactions.teams.yr4.csv']
+questions_files=['./data/gjp/ifps.csv']
 
 year2_default_changes={
 	'fixes': ['timestamp', 'price_before_100', 'question_id_str', 'insert_outcomes'],
@@ -76,13 +78,13 @@ year4_default_changes={
 	}
 }
 
-market_files={
+market_files_fixes={
 	'./data/gjp/pm_transactions.lum1.yr2.csv': year2_default_changes,
 	'./data/gjp/pm_transactions.lum2.yr2.csv': year2_default_changes,
 	'./data/gjp/pm_transactions.lum1.yr3.csv': year3_default_changes,
 	'./data/gjp/pm_transactions.lum2a.yr3.csv': year3_default_changes,
 	'./data/gjp/pm_transactions.lum2.yr3.csv': {
-		'fixes': ['timestamp', 'price_before_100', 'prob_est_100', 'question_id_str'],
+		'fixes': ['timestamp', 'price_before_100', 'prob_est_100', 'question_id_str', 'team_bad'],
 		'column_rename': {
 			'IFPID': 'question_id',
 			'Outcome': 'outcome',
@@ -141,6 +143,7 @@ market_files={
 			'GJP.User.ID': 'user_id'
 		}
 	},
+	'./data/gjp/pm_transactions.batch.train.yr4.csv': year4_default_changes,
 	'./data/gjp/pm_transactions.batch.notrain.yr4.csv': year4_default_changes,
 	'./data/gjp/pm_transactions.control.yr4.csv': year4_default_changes,
 	'./data/gjp/pm_transactions.batch.notrain.yr4.csv': year4_default_changes,
@@ -151,9 +154,19 @@ def extract_id(s):
 	p=re.compile('^[0-9]+')
 	return str(p.findall(s)[0])
 
+def extract_type(s):
+	p=re.compile('-([0-6])$')
+	return int(p.findall(s)[0])
+
 def simplify_id(s):
 	p=re.compile('^[0-9]+')
 	return p.findall(s)[0] if type(s)==str else s
+
+def extract_team(s):
+	if s=='DEFAULT':
+		return 0 # team ID 0 has not been given.
+	p=re.compile('e([0-9]{1,2})$')
+	return int(p.findall(s)[0])
 
 # the data has trades on markets, stock names (sn) are possibly substrings
 # of the options, preceded by the name of the option [a-e].
@@ -181,57 +194,54 @@ def get_option_from_options(t):
 		return finds[0]
 	return '' # give up, but this dsnesn't happen on the current data
 
-def get_market_forecasts():
+def get_market_forecasts(files):
 	market_forecasts=pd.DataFrame()
 
 	questions=get_questions()
-	questions.loc[:,'question_id']=questions['question_id'].map(simplify_id)
 	questions=questions.loc[questions['q_status']!='voided']
 
-	for f in market_files.keys():
+	for f in files:
 		market=pd.read_csv(f)
-		market=market.rename(columns=market_files[f]['column_rename'], errors='raise')
+		market=market.rename(columns=market_files_fixes[f]['column_rename'], errors='raise')
 
-		if 'id_in_name' in market_files[f]['fixes']:
+		if 'id_in_name' in market_files_fixes[f]['fixes']:
 			market['question_id']=market['market_name'].map(extract_id)
-		if 'created_date_us' in market_files[f]['fixes']:
+		if 'created_date_us' in market_files_fixes[f]['fixes']:
 			market['created_at']=pd.to_datetime(market['created_at'], dayfirst=True)
-		if 'filled_date_us' in market_files[f]['fixes']:
+		if 'filled_date_us' in market_files_fixes[f]['fixes']:
 			market['filled_at']=pd.to_datetime(market['filled_at'], dayfirst=True)
-		if 'timestamp' in market_files[f]['fixes']:
+		if 'timestamp' in market_files_fixes[f]['fixes']:
 			market['timestamp']=pd.to_datetime(market['timestamp'], dayfirst=True)
-		if 'price_before_perc' in market_files[f]['fixes']:
+		if 'price_before_perc' in market_files_fixes[f]['fixes']:
 			market['probability']=market['probability'].map(lambda x: float(x.replace('%', ''))/100)
-		if 'price_after_perc' in market_files[f]['fixes']:
+		if 'price_after_perc' in market_files_fixes[f]['fixes']:
 			market['prob_after_trade']=market['prob_after_trade'].map(lambda x: float(x.replace('%', ''))/100)
-		if 'prob_est_perc' in market_files[f]['fixes']:
+		if 'prob_est_perc' in market_files_fixes[f]['fixes']:
 			strperc=market.loc[market['prob_est'].map(type)==str]
 			market.loc[market['prob_est'].map(type)==str, 'prob_est']=strperc['prob_est'].map(lambda x: np.nan if x=='no' else float(x.replace('%', ''))/100)
-		if 'price_before_100' in market_files[f]['fixes']:
+		if 'price_before_100' in market_files_fixes[f]['fixes']:
 			market['probability']=market['probability'].map(lambda x: float(x))/100
-		if 'price_after_100' in market_files[f]['fixes']:
+		if 'price_after_100' in market_files_fixes[f]['fixes']:
 			market['prob_after_trade']=market['prob_after_trade'].map(lambda x: float(x))/100
-		if 'prob_est_100' in market_files[f]['fixes']:
+		if 'prob_est_100' in market_files_fixes[f]['fixes']:
 			market['prob_est']=market['prob_est'].map(lambda x: float(x))/100
-		if 'question_id_str' in market_files[f]['fixes']:
+		if 'question_id_str' in market_files_fixes[f]['fixes']:
 			market['question_id']=market['question_id'].map(str)
-		if 'insert_outcome' in market_files[f]['fixes']:
+		if 'insert_outcome' in market_files_fixes[f]['fixes']:
 			q_outcomes=questions.loc[questions['question_id'].isin(market['question_id'])][['question_id', 'outcome']]
 			market=pd.merge(market, q_outcomes, on='question_id', how='inner')
-
 			# TODO: this leaves the data with too many rows!
 			# Somehow the join here is still "too big" :-$
-
-		if 'id_by_name' in market_files[f]['fixes']:
+		if 'id_by_name' in market_files_fixes[f]['fixes']:
 			q_texts=questions.loc[questions['q_text'].isin(market['market_name'])][['question_id','q_text']]
 			market=pd.merge(market, q_texts, left_on='market_name', right_on='q_text', how='inner')
-
 			market.pop('q_text')
-
-		if 'option_from_stock_name' in market_files[f]['fixes']:
+		if 'option_from_stock_name' in market_files_fixes[f]['fixes']:
 			q_options=questions[['question_id','options']]
 			with_options=pd.merge(market, q_options, on='question_id', how='inner')
 			market['answer_option']=with_options[['stock_name', 'options']].apply(get_option_from_options, axis=1)
+		if 'team_bad' in market_files_fixes[f]['fixes']:
+			market['team_id']=market['team_id'].apply(extract_team)
 
 		market_forecasts=pd.concat([market_forecasts, market], join='outer')
 
@@ -253,6 +263,8 @@ def get_market_forecasts():
 	new_market_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type', 'prob_est', 'prob_after_trade', 'order_id']
 	market_forecasts=market_forecasts.reindex(columns=new_market_index)
 
+	market_forecasts['team_id']=market_forecasts['team_id'].convert_dtypes(convert_integer=True)
+
 	return market_forecasts
 
 def get_questions():
@@ -267,23 +279,26 @@ def get_questions():
 		questions[f]=pd.to_datetime(questions[f], dayfirst=True)
 
 	questions=questions.rename(columns={'ifp_id': 'question_id'}, errors="raise")
+	questions.loc[:,'question_id']=questions['question_id'].map(simplify_id)
 
 	return questions
 
-def get_survey_forecasts():
+def get_survey_forecasts(files):
 	survey_forecasts=pd.DataFrame()
 
-	for f in survey_files:
+	for f in files:
 		survey_forecasts=pd.concat([survey_forecasts, pd.read_csv(f)])
 
 	survey_forecasts['timestamp']=pd.to_datetime(survey_forecasts['timestamp'])
 	survey_forecasts['fcast_date']=pd.to_datetime(survey_forecasts['fcast_date'])
 
 	survey_forecasts=survey_forecasts.rename(columns={'ifp_id': 'question_id', 'value': 'probability', 'team': 'team_id', 'ctt': 'user_type'}, errors="raise")
+	survey_forecasts['q_type']=survey_forecasts['question_id'].apply(extract_type)
+	survey_forecasts['question_id']=survey_forecasts['question_id'].apply(extract_id)
 
 	questions=get_questions()
 
-	survey_forecasts=pd.merge(survey_forecasts, questions, on='question_id', suffixes=(None, '_x'))
+	survey_forecasts=pd.merge(survey_forecasts, questions, on=['question_id', 'q_type'], suffixes=(None, '_x'))
 
 	new_survey_index=['question_id', 'user_id', 'user_type', 'team_id', 'probability', 'answer_option', ' timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
 	survey_forecasts=survey_forecasts.reindex(columns=new_survey_index)
@@ -291,7 +306,8 @@ def get_survey_forecasts():
 	survey_forecasts.loc[survey_forecasts['probability']==0, 'probability']=PROB_MARGIN
 	survey_forecasts.loc[survey_forecasts['probability']==1, 'probability']=1-PROB_MARGIN
 
-	survey_forecasts['user_id']=survey_forecasts['user_id'].map(lambda x: x if np.isnan(x) else x)
+	survey_forecasts['user_id']=survey_forecasts['user_id'].convert_dtypes(convert_integer=True)
+	survey_forecasts['team_id']=survey_forecasts['team_id'].convert_dtypes(convert_integer=True)
 
 	return survey_forecasts
 
@@ -334,6 +350,9 @@ def apply_score(g, scoring_rule):
 def arith_aggr(forecasts):
 	return np.array([np.mean(forecasts['probability'])])
 
+def geom_aggr(forecasts):
+	return np.array([statistics.geometric_mean(forecasts['probability'])])
+
 def brier_score(probabilities, outcomes):
 	return np.mean((probabilities-outcomes)**2)
 
@@ -356,7 +375,7 @@ def both(cn):
 	print(usuniq(market_forecasts[cn]))
 	print(usuniq(survey_forecasts[cn]))
 
-survey_forecasts=get_survey_forecasts()
+survey_forecasts=get_survey_forecasts(survey_files)
 questions=get_questions()
-#survey_forecasts=frontfill_forecasts(survey_forecasts)
-market_forecasts=get_market_forecasts()
+market_forecasts=get_market_forecasts(market_files)
+#market_forecasts=get_market_forecasts(['./data/gjp/pm_transactions.lum2.yr3.csv'])
