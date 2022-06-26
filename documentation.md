@@ -207,7 +207,8 @@ the user.
 	* `outcome`
 * Second argument (`aggregation_function`): The user-defined aggregation function, which is called for on each set of forecasts made on the same question for the same answer option.
 	* Receives: A DataFrame that is a subset of columns of `forecasts`
-	* Returns: This function should return a single probability in (0,1)
+	* Returns: This function should return a list of probabilities in (0,1)
+	* Note: The results of this function are automatically normalised so that the probabilities assigned to all answer options sum to 1.
 * Third argument (`scoring_rule`): The scoring rule for forecasts.
 	* Receives:
 		* First argument: A numpy array containing the probabilities (in (0,1)

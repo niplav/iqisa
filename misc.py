@@ -1,3 +1,5 @@
+import numpy as np
+
 def arith_aggr(forecasts):
 	return np.array([np.mean(forecasts['probability'])])
 

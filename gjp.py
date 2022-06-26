@@ -341,8 +341,9 @@ def frontfill_group(g):
 def calculate_aggregate_score(forecasts, aggregation_function, scoring_rule):
 	"""forecasts should be a pandas.DataFrame that contains columns
 	question_id, user_id, timestamp, probability, answer_option, outcome, date_closed"""
-	res=survey_forecasts.groupby(['question_id', 'answer_option']).apply(apply_aggregation, aggregation_function)
+	res=forecasts.groupby(['question_id', 'answer_option']).apply(apply_aggregation, aggregation_function)
 	res.index=res.index.droplevel(['question_id', 'answer_option'])
+	res=res.groupby(['question_id']).apply(normalise)
 	res=res.groupby(['question_id']).apply(apply_score, scoring_rule)
 	res.index=res.index.droplevel(1)
 	return res
@@ -351,12 +352,13 @@ def apply_aggregation(g, aggregation_function):
 	transformed_probs=aggregation_function(g)
 	return pd.DataFrame({'question_id': np.array(g['question_id'])[0], 'probability': transformed_probs, 'outcome': np.array(g['outcome'])[0], 'answer_option': np.array(g['answer_option'])[0]})
 
+def normalise(g):
+	Z=np.sum(g['probability'])
+	g['probability']=g['probability']/Z
+	return g
+
 def apply_score(g, scoring_rule):
 	probabilities=np.array(g['probability'])
 	outcomes=np.array(g['outcome'])
 	options=np.array(g['answer_option'])
 	return pd.DataFrame({'score': np.array([scoring_rule(probabilities, outcomes==options)])})
-
-questions=get_questions()
-survey_forecasts=get_comparable_survey_forecasts(survey_files)
-market_forecasts=get_comparable_market_forecasts(market_files)
