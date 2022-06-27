@@ -192,7 +192,7 @@ A DataFrame of the format described [here](#Comparable-Forecast-Data-General-Str
 	>>> len(survey_forecasts)
 	1095705
 
-### `calculate_aggregate_score(forecasts, aggregation_function, scoring_rule)`
+### `calculate_aggregate_score(forecasts, aggregation_function, scoring_rule, norm=False)`
 
 Aggregate and score predictions on questions, methods can be given by
 the user.
@@ -207,13 +207,13 @@ the user.
 	* `outcome`
 * Second argument (`aggregation_function`): The user-defined aggregation function, which is called for on each set of forecasts made on the same question for the same answer option.
 	* Receives: A DataFrame that is a subset of columns of `forecasts`
-	* Returns: This function should return a list of probabilities in (0,1)
-	* Note: The results of this function are automatically normalised so that the probabilities assigned to all answer options sum to 1.
+	* Returns: This function should return a probability in (0,1)
 * Third argument (`scoring_rule`): The scoring rule for forecasts.
 	* Receives:
 		* First argument: A numpy array containing the probabilities (in (0,1)
 		* Second argument: A numpy array containing the outcomes (in {0,1})
 	* Returns: This function should return a floating point number
+* `norm`: Whether to normalise the probabilities resulting from aggregation to 1. By defaul this doesn't happen.
 
 #### Returns
 

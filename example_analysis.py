@@ -1,5 +1,7 @@
 import gjp
 
+import math
+import statistics
 import numpy as np
 
 def brier_score(probabilities, outcomes):
@@ -18,16 +20,12 @@ class Aggregator:
 			for i2 in formats:
 				for i3 in decay:
 					for i4 in extremize:
-						#the first sometimes doesn't work (negative values), the second is equivalent to the geometric mean of odds
+						#the first sometimes doesn't work (negative values)
+						#the second is equivalent to the geometric mean of odds
+						#I also don't know how to compute the weighted geometric mean/median
 						if (i1=='geom' and i2=='logodds') or (i1=='arith' and i2=='logodds') or (i3=='dec' and i1!='arith'):
 							continue
 						self.aggr_methods.append([i1, i2, i3, i4])
-
-	def step(self):
-		self.aggr_index+=1
-
-	def reset(self):
-		self.aggr_index=0
 
 	def aggregate(self, g):
 		n=len(g)
@@ -42,10 +40,10 @@ class Aggregator:
 			probabilities=((p**self.extr)/(((p**self.extr)+(1-p))**(1/self.extr)))
 
 		if 'dec' in self.aggr_methods[self.aggr_index]:
-			if g['date_suspend']=='NULL': #ARGH
+			if 'NULL' in g['date_suspend']: #ARGH
 				weights=np.ones_like(probabilities)
 			else:
-				t_diffs=g['date_suspend']-g['timestamps']
+				t_diffs=g['date_suspend']-g['timestamp']
 				t_diffs=np.array([t.total_seconds() for t in t_diffs])
 				weights=0.99**(1/(1*86400)*t_diffs)
 		else:
@@ -83,15 +81,38 @@ class Aggregator:
 
 		return np.array([aggrval])
 
-# Renormalize to 1
-#Z=np.sum(aggregations[aggrkey][qid]['aggr_forecasts'])
-#aggregations[aggrkey][qid]['aggr_forecasts']/=Z
+	def all_aggregations(self, forecasts):
+		self.aggr_index=0
+		results=dict()
+
+		for i in range(0, len(self.aggr_methods)):
+			res=gjp.calculate_aggregate_score(forecasts, self.aggregate, brier_score, norm=True)
+			res=np.mean(res)
+			results['_'.join(self.aggr_methods[self.aggr_index])]=res
+			print(self.aggr_methods[self.aggr_index], res)
+			self.aggr_index+=1
+
+		results=[(results[k], k) for k in results.keys()]
+		results.sort()
+
+		for e in results:
+			print(e[1], e[0])
 
 survey_forecasts=gjp.get_comparable_survey_forecasts(gjp.survey_files)
 team_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].notna()]
 nonteam_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].isna()]
+market_forecasts=gjp.get_comparable_market_forecasts(gjp.market_files)
 
 a=Aggregator()
 
-res=gjp.calculate_aggregate_score(survey_forecasts, a.aggregate, brier_score)
-print(np.mean(res))
+#print('all surveys:')
+#a.all_aggregations(survey_forecasts)
+#
+#print('surveys teams:')
+#a.all_aggregations(team_forecasts)
+#
+#print('surveys non-teams:')
+#a.all_aggregations(nonteam_forecasts)
+#
+#print('all markets non-teams:')
+#a.all_aggregations(market_forecasts)

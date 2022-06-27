@@ -338,18 +338,19 @@ def frontfill_group(g):
 	g=g.fillna(method='ffill')
 	return g
 
-def calculate_aggregate_score(forecasts, aggregation_function, scoring_rule):
+def calculate_aggregate_score(forecasts, aggregation_function, scoring_rule, norm=False):
 	"""forecasts should be a pandas.DataFrame that contains columns
 	question_id, user_id, timestamp, probability, answer_option, outcome, date_closed"""
 	res=forecasts.groupby(['question_id', 'answer_option']).apply(apply_aggregation, aggregation_function)
 	res.index=res.index.droplevel(['question_id', 'answer_option'])
-	res=res.groupby(['question_id']).apply(normalise)
+	if norm:
+		res=res.groupby(['question_id']).apply(normalise)
 	res=res.groupby(['question_id']).apply(apply_score, scoring_rule)
 	res.index=res.index.droplevel(1)
-	return res
+	return res['score']
 
 def apply_aggregation(g, aggregation_function):
-	transformed_probs=aggregation_function(g)
+	transformed_probs=np.array(aggregation_function(g))
 	return pd.DataFrame({'question_id': np.array(g['question_id'])[0], 'probability': transformed_probs, 'outcome': np.array(g['outcome'])[0], 'answer_option': np.array(g['answer_option'])[0]})
 
 def normalise(g):
