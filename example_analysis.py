@@ -1,6 +1,7 @@
 import gjp
 
 import math
+import itertools
 import statistics
 import numpy as np
 
@@ -15,17 +16,15 @@ class Aggregator:
 		means=['arith', 'geom', 'median']
 		formats=['probs', 'odds', 'logodds']
 		decay=['nodec', 'dec']
+		expertise=['noexp', 'exp']
 		extremize=['gjpextr', 'postextr', 'neyextr', 'befextr', 'noextr']
-		for i1 in means:
-			for i2 in formats:
-				for i3 in decay:
-					for i4 in extremize:
-						#the first sometimes doesn't work (negative values)
-						#the second is equivalent to the geometric mean of odds
-						#I also don't know how to compute the weighted geometric mean/median
-						if (i1=='geom' and i2=='logodds') or (i1=='arith' and i2=='logodds') or (i3=='dec' and i1!='arith'):
-							continue
-						self.aggr_methods.append([i1, i2, i3, i4])
+		for e in itertools.product(means, formats, decay, expertise, extremize):
+			#the first sometimes doesn't work (negative values)
+			#the second is equivalent to the geometric mean of odds
+			#I also don't know how to compute the weighted geometric mean/median
+			if (e[0]=='geom' and e[1]=='logodds') or (e[0]=='arith' and e[1]=='logodds') or (e[2]=='dec' and e[0]!='arith'):
+				continue
+			self.aggr_methods.append(e)
 
 	def aggregate(self, g):
 		n=len(g)
@@ -83,13 +82,12 @@ class Aggregator:
 
 	def compute_user_performance(self, forecasts):
 		self.user_performance=forecasts.groupby(['user_id']).apply(self.cumbriers)
-		self.user_performance.reindex(columns=['user_id', 'date_suspend', 'cumbriers'])
+		self.user_performance=self.user_performance.reindex(columns=['user_id', 'date_suspend', 'cumbriers'])
 
 	def cumbriers(self, g):
 		g=g.sort_values('date_suspend')
 		briers=(g['probability']-(g['answer_option']==g['outcome']))**2
 		g['cumbriers']=briers.expanding(0).mean()
-		print(g.columns)
 		return g
 
 	def all_aggregations(self, forecasts, norm=False):
