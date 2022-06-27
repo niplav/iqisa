@@ -95,13 +95,15 @@ class Aggregator:
 		results=[(results[k], k) for k in results.keys()]
 		results.sort()
 
-		for e in results:
-			print(e[1], e[0])
+		return results
 
-survey_forecasts=gjp.get_comparable_survey_forecasts(gjp.survey_files)
-team_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].notna()]
-nonteam_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].isna()]
-market_forecasts=gjp.get_comparable_market_forecasts(gjp.market_files)
+#survey_forecasts=gjp.get_comparable_survey_forecasts(gjp.survey_files)
+#team_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].notna()]
+#nonteam_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].isna()]
+f=gjp.market_files[0]
+market_forecasts=gjp.get_comparable_market_forecasts([f])
+
+# broken: 0,1,2,3,4,5,6,7,8,9
 
 a=Aggregator()
 

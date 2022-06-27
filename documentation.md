@@ -15,7 +15,7 @@ Those fields are:
 
 <!--TODO: make this a table-->
 
-* `question_id`: The unique ID of the question, type `str`. Follows the format `[0-9]{4}`.
+* `question_id`: The unique ID of the question, type `int64`. Follows the format `[0-9]{4}`.
 * `user_id`: The unique ID of the user who made the forecast, type `int`.
 * `team_id`: The ID of the team the user was in, type `int64`. The team "DEFAULT" was given the ID 0.
 * `probability`: The probability assigned in the forecast, type `float64`. Probabilities (or probabilities implied by market prices) ≥1 were changed to 0.995, and ≤0 to 0.005.
