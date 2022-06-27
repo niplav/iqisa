@@ -12,15 +12,14 @@ PROB_MARGIN=0.005
 comparable_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
 
 survey_files=['./data/gjp/survey_fcasts.yr1.csv', './data/gjp/survey_fcasts.yr2.csv', './data/gjp/survey_fcasts.yr3.csv']
-market_files=['./data/gjp/pm_transactions.lum1.yr2.csv', './data/gjp/pm_transactions.lum2.yr2.csv', './data/gjp/pm_transactions.lum1.yr3.csv', './data/gjp/pm_transactions.lum2a.yr3.csv', './data/gjp/pm_transactions.lum2.yr3.csv', './data/gjp/pm_transactions.inkling.yr3.csv', './data/gjp/pm_transactions.control.yr4.csv', './data/gjp/pm_transactions.batch.train.yr4.csv', './data/gjp/pm_transactions.batch.notrain.yr4.csv', './data/gjp/pm_transactions.supers.yr4.csv', './data/gjp/pm_transactions.teams.yr4.csv']
+broken_market_files=['./data/gjp/pm_transactions.lum1.yr2.csv', './data/gjp/pm_transactions.lum2.yr2.csv', './data/gjp/pm_transactions.lum1.yr3.csv', './data/gjp/pm_transactions.lum2a.yr3.csv', './data/gjp/pm_transactions.lum2.yr3.csv']
+market_files=['./data/gjp/pm_transactions.inkling.yr3.csv', './data/gjp/pm_transactions.control.yr4.csv', './data/gjp/pm_transactions.batch.train.yr4.csv', './data/gjp/pm_transactions.batch.notrain.yr4.csv', './data/gjp/pm_transactions.supers.yr4.csv', './data/gjp/pm_transactions.teams.yr4.csv']
 questions_files=['./data/gjp/ifps.csv']
 
 year2_default_changes={
-	'fixes': ['timestamp', 'price_before_100', 'question_id_str', 'insert_outcomes', 'without_team_id'],
+	'fixes': ['timestamp', 'price_before_100', 'question_id_str', 'without_team_id', 'insert_options'],
 	'column_rename': {
 		'IFPID': 'question_id',
-		# yes. I check, for example with question 1214-0, the outcome is b, but most of the trades are on 'a'.
-		'outcome': 'answer_option',
 		'user.ID': 'user_id',
 		'Op.Type': 'op_type',
 		'order.ID': 'order_id',
@@ -35,11 +34,10 @@ year2_default_changes={
 }
 
 year3_default_changes={
-	'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str', 'insert_outcomes', 'with_prob_est', 'without_team_id'],
+	'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str', 'with_prob_est', 'without_team_id', 'insert_options'],
 	'column_rename': {
 		'IFPID': 'question_id',
-		# same as above
-		'Outcome': 'answer_option',
+		'Outcome': 'outcome',
 		'User.ID': 'user_id',
 		'Op.Type': 'op_type',
 		'Order.ID': 'order_id',
@@ -253,6 +251,8 @@ def get_market_forecasts(files):
 			market.loc[market['prob_est']>=1, 'prob_est']=1-PROB_MARGIN
 		if 'without_team_id' in market_files_fixes[f]['fixes']:
 			market=market.assign(team_id=0)
+		if 'insert_options' in market_files_fixes[f]['fixes']:
+			market['answer_option']='a'
 
 		assert(len(market)>0)
 		print(len(market))

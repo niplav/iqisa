@@ -81,12 +81,24 @@ class Aggregator:
 
 		return np.array([aggrval])
 
-	def all_aggregations(self, forecasts):
+	def compute_user_performance(self, forecasts):
+		self.user_performance=forecasts.groupby(['user_id']).apply(self.cumbriers)
+		self.user_performance.reindex(columns=['user_id', 'date_suspend', 'cumbriers'])
+
+	def cumbriers(self, g):
+		g=g.sort_values('date_suspend')
+		briers=(g['probability']-(g['answer_option']==g['outcome']))**2
+		g['cumbriers']=briers.expanding(0).mean()
+		print(g.columns)
+		return g
+
+	def all_aggregations(self, forecasts, norm=False):
 		self.aggr_index=0
+		self.compute_user_performance(forecasts)
 		results=dict()
 
 		for i in range(0, len(self.aggr_methods)):
-			res=gjp.calculate_aggregate_score(forecasts, self.aggregate, brier_score, norm=True)
+			res=gjp.calculate_aggregate_score(forecasts, self.aggregate, brier_score, norm=norm)
 			res=np.mean(res)
 			results['_'.join(self.aggr_methods[self.aggr_index])]=res
 			print(self.aggr_methods[self.aggr_index], res)
@@ -97,13 +109,13 @@ class Aggregator:
 
 		return results
 
-#survey_forecasts=gjp.get_comparable_survey_forecasts(gjp.survey_files)
-#team_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].notna()]
-#nonteam_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].isna()]
-f=gjp.market_files[0]
-market_forecasts=gjp.get_comparable_market_forecasts([f])
+survey_forecasts=gjp.get_comparable_survey_forecasts(gjp.survey_files)
+team_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].notna()]
+nonteam_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].isna()]
+market_forecasts=gjp.get_comparable_market_forecasts(gjp.market_files)
 
-# broken: 0,1,2,3,4,5,6,7,8,9
+# broken: 0,1,2,3,4
+# seriously broken: 2,3,4
 
 a=Aggregator()
 
