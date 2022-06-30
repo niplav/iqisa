@@ -192,12 +192,18 @@ A DataFrame of the format described [here](#Comparable-Forecast-Data-General-Str
 	>>> len(survey_forecasts)
 	1095705
 
-### `calculate_aggregate_score(forecasts, aggregation_function, scoring_rule, norm=False)`
+### `aggregate(forecasts, aggregation_function, norm=False, *args)`
 
 Aggregate and score predictions on questions, methods can be given by
 the user.
 
 #### Arguments
+
+The type signature of the function is
+
+	aggregate: Dataframe × (DataFrame × Optional(arguments) -> [0,1]) × Optional(arguments) × norm=False -> DataFrame
+
+To elaborate a bit further:
 
 * First argument (`forecasts`): A DataFrame of the format described [here](#Comparable-Forecast-Data-General-Structure), needs the following columns:
 	* `question_id`
@@ -206,14 +212,44 @@ the user.
 	* `answer_option`
 	* `outcome`
 * Second argument (`aggregation_function`): The user-defined aggregation function, which is called for on each set of forecasts made on the same question for the same answer option.
-	* Receives: A DataFrame that is a subset of columns of `forecasts`
+	* Receives:
+		* A DataFrame that is a subset of columns of `forecasts`
+		* Optional arguments passed on by `aggregate`
 	* Returns: This function should return a probability in (0,1)
-* Third argument (`scoring_rule`): The scoring rule for forecasts.
+* Optional arguments which are passed to the aggregation function
+* `norm`: Whether to normalise the probabilities resulting from aggregation to 1. By defaul this doesn't happen.
+
+#### Returns
+
+A DataFrame with columns `question_id`, `probability`, `outcome`,
+`answer_option`, where `probability` is the aggregated probability over
+the answer option on the question, and everything else stays the same.
+
+### `score(forecasts, scoring_rule, *args)`
+
+Score predictions on questions, methods can be given by
+the user.
+
+#### Arguments
+
+The type signature of the function is
+
+	score: Dataframe × ([0,1]ⁿ × {0,1}ⁿ × Optional(arguments) -> float) × Optional(arguments) -> DataFrame
+
+To elaborate a bit further:
+
+* First argument (`forecasts`): A DataFrame of the format described [here](#Comparable-Forecast-Data-General-Structure), needs the following columns:
+	* `question_id`
+	* `probability`
+	* `outcome`
+	* `answer_option`
+* Second argument (`scoring_rule`): The scoring rule for forecasts.
 	* Receives:
 		* First argument: A numpy array containing the probabilities (in (0,1)
 		* Second argument: A numpy array containing the outcomes (in {0,1})
+		* Optional arguments passed on by `score`
 	* Returns: This function should return a floating point number
-* `norm`: Whether to normalise the probabilities resulting from aggregation to 1. By defaul this doesn't happen.
+* Optional arguments which are passed to the scoring rule
 
 #### Returns
 
@@ -226,33 +262,65 @@ We aggregate by calculating the arithmetic mean of all forecasts made
 on a question & option, and score with the Brier score:
 
 	def arith_aggr(forecasts):
-	        return np.array([np.mean(forecasts['probability'])])
+		return np.array([np.mean(forecasts['probability'])])
 
 	def brier_score(probabilities, outcomes):
-	        return np.mean((probabilities-outcomes)**2)
+		return np.mean((probabilities-outcomes)**2)
 
 Using these in the repl:
 
-	>>> scores=calculate_aggregate_score(survey_forecasts, arith_aggr, brier_score)
-	>>> print(scores)
-	                score
+	>>> aggregations=aggregate(survey_forecasts, arith_aggr, norm=True)
+	>>> score(aggregations, brier_score)
+	>>> score(aggregations, brier_score)
 	question_id
-	1001-0       0.042850
-	1002-0       0.035197
-	...               ...
-	5009-0       0.049653
-	6379-0       0.046265
-	[462 rows x 1 columns]
+	1001    0.042850
+	1002    0.035427
+	          ...
+	5009    0.049653
+	6379    0.046265
+	Name: score, Length: 379, dtype: float64
 
 We can now calculate the average Brier score on all questions:
 
 	>>> scores.describe()
-	            score
-	count  462.000000
-	mean     0.130377
-	std      0.122574
-	min      0.002113
-	25%      0.033316
-	50%      0.071521
-	75%      0.250116
-	max      0.523622
+	count    379.000000
+	mean       0.127762
+	std        0.121041
+	min        0.005219
+	25%        0.035479
+	50%        0.071763
+	75%        0.189562
+	max        0.523622
+	Name: score, dtype: float64
+
+### `add_past_user_performance(forecasts, scoring_rule, *args)`
+
+For each forecast, add the past performance of the user making that
+forecast, up to the time of prediction, to the forecast.
+
+#### Arguments
+
+The type signature of the function is
+
+	add_past_user_performance: Dataframe × ([0,1]ⁿ × {0,1}ⁿ × Optional(arguments) -> float) × Optional(arguments) -> DataFrame
+
+* First argument (`forecasts`): a DataFrame with the fields:
+	* `question_id`
+	* `user_id`
+	* `probability`
+	* `timestamp`
+	* `date_suspend`
+* Second argument (`scoring_rule`): the scoring rule by which the performance will be judged
+	* Receives:
+		* First argument: A numpy array containing the probabilities (in (0,1)
+		* Second argument: A numpy array containing the outcomes (in {0,1})
+		* Optional arguments passed on by `score`
+	* Returns: This function should return a floating point number
+* Optional additional arguments that will be passed on to the scoring rule
+
+#### Returns
+
+The same DataFrame it has received as its argument, and two additional columns:
+
+* `cumul_score`: The score of the user making the forecast for all questions that have resolved before the current prediction (that is, before `timestamp`), as judged by `scoring_rule`
+* `cumul_perc`: The percentile among all forecasters that the forecaster finds themselves in, according to `cumul_score` (lower is better)

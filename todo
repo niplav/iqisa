@@ -43,6 +43,11 @@ Market data
 		new_survey_index=['question_id', 'user_id', 'user_type', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
 
 Better Brier score
-Forecasters ranked by previous performance
 Finally execute it on the whole data
 Convert types using convert_dtypes
+
+Forecasters ranked by previous performance
+	Add the option to pass user-defined data along in `calculate_aggregate_score`
+	Separate function to add cumulative user performance to DataFrame
+		* parameters: dataset with forecasts, caller-defined scoring rule
+		* outputs: input dataframe with cumulative scoring rule value & percentile among all forecasters

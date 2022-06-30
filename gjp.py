@@ -203,7 +203,6 @@ def get_market_forecasts(files):
 	for f in files:
 		market=pd.read_csv(f)
 		market=market.rename(columns=market_files_fixes[f]['column_rename'], errors='raise')
-		print(len(market))
 
 		#We want to use question_id below, but we want it to
 		#have the correct type already, so sometimes we have to
@@ -255,7 +254,6 @@ def get_market_forecasts(files):
 			market['answer_option']='a'
 
 		assert(len(market)>0)
-		print(len(market))
 
 		market_forecasts=pd.concat([market_forecasts, market], join='outer')
 
@@ -328,46 +326,3 @@ def get_comparable_survey_forecasts(files):
 	survey_forecasts=survey_forecasts.reindex(columns=comparable_index)
 
 	return survey_forecasts
-
-def frontfill_forecasts(forecasts):
-	"""forecasts should be a dataframe with at least these five fields:
-	question_id, user_id, timestamp, probability"""
-	res=survey_forecasts.groupby(['question_id', 'user_id', 'answer_option']).apply(frontfill_group)
-	res.index=res.index.droplevel(['question_id', 'user_id', 'answer_option'])
-	return res
-
-def frontfill_group(g):
-	"""warning: this makes the forecast ids useless"""
-	dates=pd.date_range(start=min(g.timestamp), end=max(g.date_closed), freq='D')
-	alldates=pd.DataFrame({'fcast_date': dates})
-	g=g.merge(alldates, on='fcast_date', how='outer')
-	g=g.sort_values(by='fcast_date')
-	g['timestamp']=g['timestamp'].fillna(g['fcast_date'])
-	g=g.fillna(method='ffill')
-	return g
-
-def calculate_aggregate_score(forecasts, aggregation_function, scoring_rule, norm=False):
-	"""forecasts should be a pandas.DataFrame that contains columns
-	question_id, user_id, timestamp, probability, answer_option, outcome, date_closed"""
-	res=forecasts.groupby(['question_id', 'answer_option']).apply(apply_aggregation, aggregation_function)
-	res.index=res.index.droplevel(['question_id', 'answer_option'])
-	if norm:
-		res=res.groupby(['question_id']).apply(normalise)
-	res=res.groupby(['question_id']).apply(apply_score, scoring_rule)
-	res.index=res.index.droplevel(1)
-	return res['score']
-
-def apply_aggregation(g, aggregation_function):
-	transformed_probs=np.array(aggregation_function(g))
-	return pd.DataFrame({'question_id': np.array(g['question_id'])[0], 'probability': transformed_probs, 'outcome': np.array(g['outcome'])[0], 'answer_option': np.array(g['answer_option'])[0]})
-
-def normalise(g):
-	Z=np.sum(g['probability'])
-	g['probability']=g['probability']/Z
-	return g
-
-def apply_score(g, scoring_rule):
-	probabilities=np.array(g['probability'])
-	outcomes=np.array(g['outcome'])
-	options=np.array(g['answer_option'])
-	return pd.DataFrame({'score': np.array([scoring_rule(probabilities, outcomes==options)])})

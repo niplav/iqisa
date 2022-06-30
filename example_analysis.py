@@ -5,8 +5,33 @@ import itertools
 import statistics
 import numpy as np
 
-def brier_score(probabilities, outcomes):
+def arith_aggr(forecasts, *args):
+	return np.array([np.mean(forecasts['probability'])])
+
+def geom_aggr(forecasts, *args):
+	return np.array([statistics.geometric_mean(forecasts['probability'])])
+
+def brier_score(probabilities, outcomes, *args):
 	return np.mean((probabilities-outcomes)**2)
+
+def usuniq(l):
+	r=[]
+	nanfound=False
+	for e in l:
+		if type(e)==float:
+			if np.isnan(e) and nanfound:
+				continue
+			if np.isnan(e) and not nanfound:
+				nanfound=True
+				r.append(e)
+		if e in r:
+			continue
+		r.append(e)
+	return r
+
+def both(cn):
+	print(usuniq(market_forecasts[cn]))
+	print(usuniq(survey_forecasts[cn]))
 
 class Aggregator:
 	def __init__(self):
@@ -80,16 +105,6 @@ class Aggregator:
 
 		return np.array([aggrval])
 
-	def compute_user_performance(self, forecasts):
-		self.user_performance=forecasts.groupby(['user_id']).apply(self.cumbriers)
-		self.user_performance=self.user_performance.reindex(columns=['user_id', 'date_suspend', 'cumbriers'])
-
-	def cumbriers(self, g):
-		g=g.sort_values('date_suspend')
-		briers=(g['probability']-(g['answer_option']==g['outcome']))**2
-		g['cumbriers']=briers.expanding(0).mean()
-		return g
-
 	def all_aggregations(self, forecasts, norm=False):
 		self.aggr_index=0
 		self.compute_user_performance(forecasts)
@@ -106,6 +121,17 @@ class Aggregator:
 		results.sort()
 
 		return results
+
+def compute_user_performance(forecasts, scoring_rule):
+	user_performance=forecasts.groupby(['user_id']).apply(cumbriers)
+	user_performance=user_performance.reset_index(drop=True)
+	user_performance=user_performance.reindex(columns=['user_id', 'date_suspend', 'cumbriers'])
+
+def cumbriers(g):
+	g=g.sort_values('date_suspend')
+	briers=(g['probability']-(g['answer_option']==g['outcome']))**2
+	g['cumulbrier']=briers.expanding(0).mean()
+	return g
 
 survey_forecasts=gjp.get_comparable_survey_forecasts(gjp.survey_files)
 team_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].notna()]
