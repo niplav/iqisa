@@ -265,7 +265,7 @@ on a question & option, and score with the Brier score:
 		return np.array([np.mean(forecasts['probability'])])
 
 	def brier_score(probabilities, outcomes):
-		return np.mean((probabilities-outcomes)**2)
+		return np.mean((probabilities-outcomes)* *2)
 
 Using these in the repl:
 
@@ -293,7 +293,7 @@ We can now calculate the average Brier score on all questions:
 	max        0.523622
 	Name: score, dtype: float64
 
-### `add_past_user_performance(forecasts, scoring_rule, *args)`
+### `cumul_user_score(forecasts, scoring_rule, *args)`
 
 For each forecast, add the past performance of the user making that
 forecast, up to the time of prediction, to the forecast.
@@ -302,7 +302,7 @@ forecast, up to the time of prediction, to the forecast.
 
 The type signature of the function is
 
-	add_past_user_performance: Dataframe × ([0,1]ⁿ × {0,1}ⁿ × Optional(arguments) -> float) × Optional(arguments) -> DataFrame
+	cumul_user_score: Dataframe × ([0,1]ⁿ × {0,1}ⁿ × Optional(arguments) -> float) × Optional(arguments) -> DataFrame
 
 * First argument (`forecasts`): a DataFrame with the fields:
 	* `question_id`
@@ -320,7 +320,36 @@ The type signature of the function is
 
 #### Returns
 
-The same DataFrame it has received as its argument, and two additional columns:
+The same DataFrame it has received as its argument, and an additional
+column `cumul_score`: The score of the user making the forecast for all
+questions that have resolved before the current prediction (that is,
+before `timestamp`), as judged by `scoring_rule`.
 
-* `cumul_score`: The score of the user making the forecast for all questions that have resolved before the current prediction (that is, before `timestamp`), as judged by `scoring_rule`
-* `cumul_perc`: The percentile among all forecasters that the forecaster finds themselves in, according to `cumul_score` (lower is better)
+### `cumul_user_perc(forecasts, lower_better=True)`
+
+Based on cumulative past scores, add the percentile of forecaster
+performance the forecaster finds themselves in.
+
+#### Arguments
+
+Takes a DataFrame with the columns
+
+* `timestamp`
+* `date_suspend`
+* `user_id`
+* `cumul_score` (as for example added by `cumul_user_score`)
+
+and a named argument `lower_better` that, if `True`, assumes that lower
+values in `cumul_score` indicate better performance, and if `False`,
+assumes that higher values in the same field are better.
+
+#### Returns
+
+The same DataFrame it has received as its argument, and an additional
+column `cumul_perc`. `cumul_perc` is the percentile of forecaster
+performance the forecaster finds themselves in at the time they are
+making the forecast.
+
+#### Notes
+
+The function is currently very slow.

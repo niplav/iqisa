@@ -122,21 +122,11 @@ class Aggregator:
 
 		return results
 
-def compute_user_performance(forecasts, scoring_rule):
-	user_performance=forecasts.groupby(['user_id']).apply(cumbriers)
-	user_performance=user_performance.reset_index(drop=True)
-	user_performance=user_performance.reindex(columns=['user_id', 'date_suspend', 'cumbriers'])
-
-def cumbriers(g):
-	g=g.sort_values('date_suspend')
-	briers=(g['probability']-(g['answer_option']==g['outcome']))**2
-	g['cumulbrier']=briers.expanding(0).mean()
-	return g
-
 survey_forecasts=gjp.get_comparable_survey_forecasts(gjp.survey_files)
 team_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].notna()]
 nonteam_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].isna()]
 market_forecasts=gjp.get_comparable_market_forecasts(gjp.market_files)
+mini_survey=gjp.get_comparable_survey_forecasts(['data/gjp/survey_fcasts_mini.yr1.csv'])
 
 # broken: 0,1,2,3,4
 # seriously broken: 2,3,4

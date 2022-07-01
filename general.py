@@ -53,5 +53,57 @@ def apply_score(g, scoring_rule, *args):
 	options=np.array(g['answer_option'])
 	return pd.DataFrame({'score': np.array([scoring_rule(probabilities, outcomes==options, *args)])})
 
-def add_past_user_performance(forecasts, scoring_rule):
+# This function can't be written in a pandastic way because
+# expanding.Expanding.apply only accepts single columns (yes, even with
+# numba). I hope future versions will allow for a version of apply that
+# plays nicely with expanding. Perhaps I'll find the time to write it.
+# Also, it is _slow_: 110 seconds for the 254598 rows of market data
+# from the last 2 years.
+
+def cumul_user_score(forecasts, scoring_rule, *args):
+	user_perf=forecasts.groupby(['user_id']).apply(cumul_score, scoring_rule, *args)
+	user_perf=user_perf.reset_index(drop=True)
+	return user_perf
+
+def cumul_score(g, scoring_rule, *args):
+	g=g.sort_values('date_suspend')
+	fst=g.index[0]
+	cumul_scores=[]
+	for lim in g.index:
+		expan=g.loc[fst:lim,:]
+		cumul_scores.append(scoring_rule(expan['probability'], expan['answer_option']==expan['outcome'], *args))
+	g['cumul_score']=np.array(cumul_scores)
+	return g
+
+# Maybe make this a tiny bit faster
+# Idea: keep resbef, only expand it if necessary, have user_scores
+# precomputed as well, only update it if resbef has changed (and if so,
+# only with the new resbef values).
+
+def cumul_user_perc(forecasts, lower_better=True):
+	forecasts=forecasts.sort_values('timestamp')
+	fst=forecasts.index[0]
+	cumul_rankings=[]
+	for lim in forecasts.index:
+		expan=forecasts.loc[fst:lim,:]
+		#timestamp of current forecast
+		cur=forecasts.loc[lim:lim,:]
+		curts=cur['timestamp'].values[0]
+		#get the forecasts that have resolved before the current forecast happened
+		resbef=expan.loc[expan['date_suspend']<curts]
+		#get the score of the last resolved forecast each forecaster made before the current forecast
+		user_scores=resbef.groupby(['user_id'])['cumul_score'].last()
+		user_scores=np.sort(user_scores)
+		curscore=cur['cumul_score'].values[0]
+		if len(user_scores)==0:
+			# by default assume the user is average
+			percentile=0.5
+		else:
+			if lower_better:
+				percentile=len(user_scores[user_scores>=curscore])/len(user_scores)
+			else:
+				percentile=len(user_scores[user_scores<=curscore])/len(user_scores)
+		assert(0<=percentile<=1)
+		cumul_rankings.append(percentile)
+	forecasts['cumul_perc']=np.array(cumul_rankings)
 	return forecasts
