@@ -17,9 +17,10 @@ market_files=['./data/gjp/pm_transactions.inkling.yr3.csv', './data/gjp/pm_trans
 questions_files=['./data/gjp/ifps.csv']
 
 year2_default_changes={
-	'fixes': ['timestamp', 'price_before_100', 'question_id_str', 'without_team_id', 'insert_options'],
+	'fixes': ['timestamp', 'price_before_100', 'question_id_str', 'without_team_id', 'insert_outcomes'],
 	'column_rename': {
 		'IFPID': 'question_id',
+		'outcome': 'answer_option',
 		'user.ID': 'user_id',
 		'Op.Type': 'op_type',
 		'order.ID': 'order_id',
@@ -34,7 +35,7 @@ year2_default_changes={
 }
 
 year3_default_changes={
-	'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str', 'with_prob_est', 'without_team_id', 'insert_options'],
+	'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str', 'with_prob_est', 'without_team_id', 'insert_outcomes'],
 	'column_rename': {
 		'IFPID': 'question_id',
 		'Outcome': 'outcome',

@@ -1,4 +1,5 @@
 import gjp
+import general
 
 import math
 import itertools
@@ -122,16 +123,16 @@ class Aggregator:
 
 		return results
 
-survey_forecasts=gjp.get_comparable_survey_forecasts(gjp.survey_files)
-team_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].notna()]
-nonteam_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].isna()]
-market_forecasts=gjp.get_comparable_market_forecasts(gjp.market_files)
-mini_survey=gjp.get_comparable_survey_forecasts(['data/gjp/survey_fcasts_mini.yr1.csv'])
+#survey_forecasts=gjp.get_comparable_survey_forecasts(gjp.survey_files)
+#team_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].notna()]
+#nonteam_forecasts=survey_forecasts.loc[survey_forecasts['team_id'].isna()]
+market_forecasts=gjp.get_comparable_market_forecasts(gjp.broken_market_files)
+#mini_survey=gjp.get_comparable_survey_forecasts(['data/gjp/survey_fcasts_mini.yr1.csv'])
 
 # broken: 0,1,2,3,4
 # seriously broken: 2,3,4
 
-a=Aggregator()
+#a=Aggregator()
 
 #print('all surveys:')
 #a.all_aggregations(survey_forecasts)

@@ -52,7 +52,8 @@ Functions
 
 Reads & returns a datastructure containing all forecasts reported by
 forecasters in surveys (that is, all forecasts not made on a prediction
-market).
+market), with columns selected so they are shared with every other
+dataset.
 
 #### Arguments
 
@@ -73,7 +74,8 @@ Load the data from all files containing survey data:
 
 Reads & returns a datastructure containing all forecasts that can be
 computed from the prices on the prediction markets collected in the
-files in `files`.
+files in `files`, with fields selected so that they are shared by every
+other dataset.
 
 #### Arguments
 
@@ -93,7 +95,7 @@ Load the data from all files containing survey data:
 ### `get_survey_forecasts(files)`
 
 Reads & returns a datastructure containing all forecasts reported by
-forecasters in surveys.
+forecasters in surveys, with all fields in the original CSV.
 
 #### Arguments
 
@@ -119,7 +121,7 @@ Additional columns it contains:
 ### `get_market_forecasts(files)`
 
 Reads & returns a datastructure containing all forecasts implied by
-prices on prediction markets.
+prices on prediction markets, with all columns in the original dataset.
 
 #### Arguments
 
@@ -162,8 +164,11 @@ Additional columns it contains:
 __Warning__: This function makes the dataset given to it ~100 times
 bigger, which might lead to running of out RAM.
 
-Modify a set of forecasts so that forecasts by individual forecasters are
+Return a set of forecasts so that forecasts by individual forecasters are
 repeated daily until they make a new forecast or the question is closed.
+
+This function returns a new DataFrame and doesn't change the DataFrame
+given as an argument.
 
 #### Arguments
 
@@ -190,18 +195,20 @@ A DataFrame of the format described [here](#Comparable-Forecast-Data-General-Str
 	9999
 	>>> survey_forecasts=frontfill_forecasts(survey_forecasts)
 	>>> len(survey_forecasts)
-	1095705
+	1086926
 
-### `aggregate(forecasts, aggregation_function, norm=False, *args)`
+### `aggregate(forecasts, aggregation_function, *args)`
 
 Aggregate and score predictions on questions, methods can be given by
 the user.
+
+This function returns a new DataFrame with the aggregated data.
 
 #### Arguments
 
 The type signature of the function is
 
-	aggregate: Dataframe × (DataFrame × Optional(arguments) -> [0,1]) × Optional(arguments) × norm=False -> DataFrame
+	aggregate: Dataframe × (DataFrame × Optional(arguments) -> [0,1]) × Optional(arguments) -> DataFrame
 
 To elaborate a bit further:
 
@@ -213,17 +220,18 @@ To elaborate a bit further:
 	* `outcome`
 * Second argument (`aggregation_function`): The user-defined aggregation function, which is called for on each set of forecasts made on the same question for the same answer option.
 	* Receives:
-		* A DataFrame that is a subset of columns of `forecasts`
+		* A DataFrame that is a subset of rows of `forecasts` (all with the same `question_id`)
 		* Optional arguments passed on by `aggregate`
 	* Returns: This function should return a probability in (0,1)
 * Optional arguments which are passed to the aggregation function
-* `norm`: Whether to normalise the probabilities resulting from aggregation to 1. By defaul this doesn't happen.
 
 #### Returns
 
 A DataFrame with columns `question_id`, `probability`, `outcome`,
-`answer_option`, where `probability` is the aggregated probability over
-the answer option on the question, and everything else stays the same.
+`answer_option`, where `probability` is the aggregated probability
+over the answer option on the question.
+
+One column per `answer_option` on `question_id`.
 
 ### `score(forecasts, scoring_rule, *args)`
 
@@ -253,8 +261,8 @@ To elaborate a bit further:
 
 #### Returns
 
-The scores for each question: a DataFrame where the index contains the
-`question_id`s, and the columns contain the score.
+A new DataFrame with the scores for each question: a DataFrame where
+the index contains the `question_id`s, and the rows contain the score.
 
 #### Example
 
@@ -269,7 +277,7 @@ on a question & option, and score with the Brier score:
 
 Using these in the repl:
 
-	>>> aggregations=aggregate(survey_forecasts, arith_aggr, norm=True)
+	>>> aggregations=aggregate(survey_forecasts, arith_aggr)
 	>>> score(aggregations, brier_score)
 	>>> score(aggregations, brier_score)
 	question_id
@@ -295,8 +303,9 @@ We can now calculate the average Brier score on all questions:
 
 ### `cumul_user_score(forecasts, scoring_rule, *args)`
 
-For each forecast, add the past performance of the user making that
-forecast, up to the time of prediction, to the forecast.
+Return a new DataFrame that has contains a new field `cumul_score`. The
+field contains the past performance of the user making that forecast,
+before the time of prediction.
 
 #### Arguments
 
@@ -314,21 +323,25 @@ The type signature of the function is
 	* Receives:
 		* First argument: A numpy array containing the probabilities (in (0,1)
 		* Second argument: A numpy array containing the outcomes (in {0,1})
-		* Optional arguments passed on by `score`
+		* Optional arguments passed on by `cumul_user_score`
 	* Returns: This function should return a floating point number
 * Optional additional arguments that will be passed on to the scoring rule
 
 #### Returns
 
-The same DataFrame it has received as its argument, and an additional
-column `cumul_score`: The score of the user making the forecast for all
+A new DataFrame that is a copy of `forecasts`, and an additional column
+`cumul_score`: The score of the user making the forecast for all
 questions that have resolved before the current prediction (that is,
 before `timestamp`), as judged by `scoring_rule`.
+
+<!--TODO
+#### Example
+-->
 
 ### `cumul_user_perc(forecasts, lower_better=True)`
 
 Based on cumulative past scores, add the percentile of forecaster
-performance the forecaster finds themselves in.
+performance the forecaster finds themselves in at the time of forecasting.
 
 #### Arguments
 
@@ -337,7 +350,7 @@ Takes a DataFrame with the columns
 * `timestamp`
 * `date_suspend`
 * `user_id`
-* `cumul_score` (as for example added by `cumul_user_score`)
+* `cumul_score` (e.g. as added by `cumul_user_score`)
 
 and a named argument `lower_better` that, if `True`, assumes that lower
 values in `cumul_score` indicate better performance, and if `False`,
