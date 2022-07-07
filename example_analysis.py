@@ -129,7 +129,7 @@ class Aggregator:
 market_forecasts=gjp.get_comparable_market_forecasts(gjp.broken_market_files)
 #mini_survey=gjp.get_comparable_survey_forecasts(['data/gjp/survey_fcasts_mini.yr1.csv'])
 
-# broken: 0,1,2,3,4
+# broken: 2,3,4
 # seriously broken: 2,3,4
 
 #a=Aggregator()

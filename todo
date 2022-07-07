@@ -1,50 +1,29 @@
+General
+	add_cumul_user_perc is super slow, any chance to make it faster?
+	Import all previously implemented aggregation & scoring rules
+		Also write an aggregation rule that takes into account previous performance by forecasters
+	Better Brier score
+	Distinguish scoring aggregations and forecasts!
+
 Make fields for prediction market data and survey data consistent
 	What about prices before & after trades?
-
-Import all previously implemented aggregation & scoring rules
-	Also write an aggregation rule that takes into account previous performance by forecasters
 
 Finish documentation
 	Describe all fields returned by `get_survey_forecasts` and `get_market_forecasts`
 
 Data in general
-	Unify fields, think about good names for fields
+	Unify fields, think about better names for fields
 	Field order:
 	{general} question_id, user_id, probability, answer_option, timestamp,
 	{question} outcome, date_start, date_suspend, date_to_close, date_closed, n_opts, options, q_status, q_type
 	Outcome isn't always defined
 
-Survey data
-	Extract team ID out of the 'user_type' field (if need be?)
-
 Market data
-	Fix the question ids for market data
-	Get answer option for all
-	This lacks the options that were bet on (`answer_option`), why?
+	6413 sometimes has no result in market data, I suspect there's no result in many of them!
+	Year 3 lacks the options that were bet on (`answer_option`), why?
 		Could it be that `outcome` in some files is actually the answer option?
-	Why do we get more forecasts when we add question ids and outcomes?
 	With year 2/3 data, is the field price the price before or after the trade?
-	Get the team id out of '3exx'
-		Also, what's up with team DEFAULT?
-	Field data (not used indices, new index):
-		Index(['op_type', 'order_id',
-			'isbuy', 'islong', 'with_mm', 'matching_order_id', 'quantity',
-			'experience', 'by_agent', 'trade_qty', 'low_fuse', 'max_bid',
-			'min_ask', 'high_fuse', 'min_qty', 'divest_only', 'trade_id',
-			'stock_name', 'spent', 'created_at', 'filled_at', 'trade_type'],
-
-		new_market_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type', 'prob_est', 'prob_after_trade']
-
-		Index(['cond', 'training'
-			'forecast_id', 'fcast_type', 'fcast_date', 'expertise',
-			'viewtime', 'year', 'q_text', 'q_desc', 'q_status_x',
-			'short_title'], dtype='object')
-
-		new_survey_index=['question_id', 'user_id', 'user_type', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
-
-Better Brier score
 Finally execute it on the whole data
-Convert types using convert_dtypes
 
 Forecasters ranked by previous performance
 	Add the option to pass user-defined data along in `calculate_aggregate_score`
