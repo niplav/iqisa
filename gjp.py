@@ -149,7 +149,7 @@ class GJPMarkets(GJPForecastSetBase):
 			}
 		},
 		'./data/gjp/pm_transactions.inkling.yr3.csv': {
-			'fixes': ['timestamp', 'created_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'id_by_name', 'option_from_stock_name', 'with_after_trade', 'with_prob_est', 'without_team_id'],
+			'fixes': ['timestamp', 'created_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'id_by_name', 'option_from_stock_name', 'with_after_trade', 'with_prob_est', 'without_team_id', 'insert_outcomes'],
 			'column_rename': {
 				'trade.id': 'order_id',
 				'market.name': 'market_name',
@@ -164,7 +164,7 @@ class GJPMarkets(GJPForecastSetBase):
 			}
 		},
 		'./data/gjp/pm_transactions.teams.yr4.csv': {
-			'fixes': ['timestamp', 'created_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name', 'insert_outcome', 'option_from_stock_name', 'with_after_trade', 'with_prob_est'],
+			'fixes': ['timestamp', 'created_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'question_id_str', 'id_in_name', 'insert_outcome', 'option_from_stock_name', 'with_after_trade', 'with_prob_est', 'insert_outcomes'],
 			'column_rename': {
 				'Trade.ID': 'order_id',
 				'Market.Name': 'market_name',

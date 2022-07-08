@@ -3,7 +3,6 @@ General
 	Import all previously implemented aggregation & scoring rules
 		Also write an aggregation rule that takes into account previous performance by forecasters
 	Better Brier score
-	Distinguish scoring aggregations and forecasts!
 
 Make fields for prediction market data and survey data consistent
 	What about prices before & after trades?
@@ -16,13 +15,13 @@ Data in general
 	Field order:
 	{general} question_id, user_id, probability, answer_option, timestamp,
 	{question} outcome, date_start, date_suspend, date_to_close, date_closed, n_opts, options, q_status, q_type
-	Outcome isn't always defined
 
 Market data
 	6413 sometimes has no result in market data, I suspect there's no result in many of them!
 	Year 3 lacks the options that were bet on (`answer_option`), why?
 		Could it be that `outcome` in some files is actually the answer option?
 	With year 2/3 data, is the field price the price before or after the trade?
+
 Finally execute it on the whole data
 
 Forecasters ranked by previous performance
