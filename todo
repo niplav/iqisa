@@ -1,9 +1,7 @@
 General
 	add_cumul_user_perc is super slow, any chance to make it faster?
-	Import all previously implemented aggregation & scoring rules
-		Also write an aggregation rule that takes into account previous performance by forecasters
+	Write an aggregation rule that takes into account previous performance by forecasters
 	Better Brier score
-	Add **kwargs to the various generic functions
 
 Make fields for prediction market data and survey data consistent
 	What about prices before & after trades?

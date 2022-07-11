@@ -20,35 +20,35 @@ class ForecastSetHandler():
 		self.scores=pd.DataFrame()
 		self.forecasts=forecasts
 
-	def aggregate(self, aggregation_function, *args):
+	def aggregate(self, aggregation_function, *args, **kwargs):
 		"""forecasts should be a pandas.DataFrame that contains columns
 		question_id, user_id, timestamp, probability, answer_option, outcome, date_closed"""
-		self.aggregations=self.forecasts.groupby(['question_id', 'answer_option']).apply(self.apply_aggregation, aggregation_function, *args)
+		self.aggregations=self.forecasts.groupby(['question_id', 'answer_option']).apply(self.apply_aggregation, aggregation_function, *args, **kwargs)
 		self.aggregations.index=self.aggregations.index.droplevel(['question_id', 'answer_option'])
 
-	def apply_aggregation(self, g, aggregation_function, *args):
-		transformed_probs=np.array(aggregation_function(g, *args))
+	def apply_aggregation(self, g, aggregation_function, *args, **kwargs):
+		transformed_probs=np.array(aggregation_function(g, *args, **kwargs))
 		return pd.DataFrame({'question_id': np.array(g['question_id'])[0], 'probability': transformed_probs, 'outcome': np.array(g['outcome'])[0], 'answer_option': np.array(g['answer_option'])[0]})
 
-	def score_aggregations(self, scoring_rule, *args):
+	def score_aggregations(self, scoring_rule, *args, **kwargs):
 		if len(self.aggregations)==0:
 			raise Exception('no aggregations computed yet, use .aggregate()')
-		self.score_forecasts(scoring_rule, self.aggregations, *args)
+		self.score_forecasts(scoring_rule, self.aggregations, *args, **kwargs)
 
-	def score(self, scoring_rule, *args):
+	def score(self, scoring_rule, *args, **kwargs):
 		if len(self.forecasts)==0:
 			raise Exception('no forecasts loaded yet, use .load()')
-		self.score_forecasts(scoring_rule, self.forecasts, *args)
+		self.score_forecasts(scoring_rule, self.forecasts, *args, **kwargs)
 
-	def score_forecasts(self, scoring_rule, forecasts, *args):
-		self.scores=forecasts.groupby(['question_id']).apply(self.apply_score, scoring_rule, *args)
+	def score_forecasts(self, scoring_rule, forecasts, *args, **kwargs):
+		self.scores=forecasts.groupby(['question_id']).apply(self.apply_score, scoring_rule, *args, **kwargs)
 		self.scores.index=self.scores.index.droplevel(1)
 
-	def apply_score(self, g, scoring_rule, *args):
+	def apply_score(self, g, scoring_rule, *args, **kwargs):
 		probabilities=np.array(g['probability'])
 		outcomes=np.array(g['outcome'])
 		options=np.array(g['answer_option'])
-		return pd.DataFrame({'score': np.array([scoring_rule(probabilities, outcomes==options, *args)])})
+		return pd.DataFrame({'score': np.array([scoring_rule(probabilities, outcomes==options, *args, **kwargs)])})
 
 	def normalise(self):
 		if len(self.aggregations)==0:
@@ -67,18 +67,18 @@ class ForecastSetHandler():
 	# Also, it is _slow_: 110 seconds for the 254598 rows of market data
 	# from the last 2 years.
 
-	def add_cumul_user_score(self, scoring_rule, *args):
-		self.forecasts=self.forecasts.groupby(['user_id']).apply(self.cumul_score, scoring_rule, *args)
+	def add_cumul_user_score(self, scoring_rule, *args, **kwargs):
+		self.forecasts=self.forecasts.groupby(['user_id']).apply(self.cumul_score, scoring_rule, *args, **kwargs)
 		self.forecasts=self.forecasts.reset_index(drop=True)
 		self.with_cumul_scores=True
 
-	def cumul_score(self, g, scoring_rule, *args):
+	def cumul_score(self, g, scoring_rule, *args, **kwargs):
 		g=g.sort_values('date_suspend')
 		fst=g.index[0]
 		cumul_scores=[]
 		for lim in g.index:
 			expan=g.loc[fst:lim,:]
-			cumul_scores.append(scoring_rule(expan['probability'], expan['answer_option']==expan['outcome'], *args))
+			cumul_scores.append(scoring_rule(expan['probability'], expan['answer_option']==expan['outcome'], *args, **kwargs))
 		g['cumul_score']=np.array(cumul_scores)
 		return g
 

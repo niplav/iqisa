@@ -166,7 +166,7 @@ DataFrame. Rows are question IDs (of type `float`, columns are scores
 
 ### Functions
 
-#### `aggregate(aggregation_function, *args)`
+#### `aggregate(aggregation_function, *args, **kwargs)`
 
 Aggregate forecasts on questions by running `aggregation_functin` over
 the field `forecasts`, aggregation method provided by the user.
@@ -197,7 +197,7 @@ One column per `answer_option` and `question_id` (i.e. one column for
 answer option 'a' on question 1, one for answer option 'b' on question 1,
 on for answer option 'a' on question 2 etc.).
 
-#### `score(scoring_rule, *args)` and `score_aggregations(scoring_rule, *args)`
+#### `score(scoring_rule, *args, **kwargs)` and `score_aggregations(scoring_rule, *args, **kwargs)`
 
 Score aggregated predictions on questions, method can be given by
 the user.
@@ -273,7 +273,7 @@ We can now calculate the average Brier score on all questions:
 #### `normalise`
 -->
 
-#### `add_cumul_user_score(scoring_rule, *args)`
+#### `add_cumul_user_score(scoring_rule, *args, **kwargs)`
 
 Change `forecasts` so that it has contains a new field `cumul_score`. The
 field contains the past performance of the user making that forecast,
