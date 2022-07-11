@@ -304,7 +304,6 @@ class GJPMarkets(GJPForecastSetBase):
 			if 'conditional_options_a' in self.fixes[f]['fixes']:
 				onlytype=questions[['question_id', 'q_type']]
 				market=pd.merge(market, onlytype, on=['question_id'], how='inner')
-				market.loc[market['q_type']!=0].loc[market['q_type']!=6]='a'
 				market.loc[(market['q_type']!=0)&(market['q_type']!=6),'answer_option']='a'
 				market=market.drop(['q_type'], axis=1)
 

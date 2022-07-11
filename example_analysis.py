@@ -52,60 +52,6 @@ class Aggregator:
 				continue
 			self.aggr_methods.append(e)
 
-	def aggregate(self, g):
-		n=len(g)
-
-		if n==0:
-			return
-
-		probabilities=g['probability']
-
-		if 'befextr' in self.aggr_methods[self.aggr_index]:
-			p=probabilities
-			probabilities=((p**self.extr)/(((p**self.extr)+(1-p))**(1/self.extr)))
-
-		if 'dec' in self.aggr_methods[self.aggr_index]:
-			if 'NULL' in g['date_suspend']: #ARGH
-				weights=np.ones_like(probabilities)
-			else:
-				t_diffs=g['date_suspend']-g['timestamp']
-				t_diffs=np.array([t.total_seconds() for t in t_diffs])
-				weights=0.99**(1/(1*86400)*t_diffs)
-		else:
-			weights=np.ones_like(probabilities)
-
-		if 'odds' in self.aggr_methods[self.aggr_index]:
-			probabilities=probabilities/(1-probabilities)
-		elif 'logodds' in self.aggr_methods[self.aggr_index]:
-			probabilities=probabilities/(1-probabilities)
-			probabilities=np.log(probabilities)
-
-		if 'arith' in self.aggr_methods[self.aggr_index]:
-			aggrval=np.sum(weights*probabilities)/np.sum(weights)
-		elif 'geom' in self.aggr_methods[self.aggr_index]:
-			aggrval=statistics.geometric_mean(probabilities)
-		elif 'median' in self.aggr_methods[self.aggr_index]:
-			aggrval=np.median(probabilities)
-
-		if 'odds' in self.aggr_methods[self.aggr_index]:
-			aggrval=aggrval/(1+aggrval)
-		elif 'logodds' in self.aggr_methods[self.aggr_index]:
-			aggrval=np.exp(aggrval)
-			aggrval=aggrval/(1+aggrval)
-
-		if 'gjpextr' in self.aggr_methods[self.aggr_index]:
-			p=aggrval
-			aggrval=((p**self.extr)/(((p**self.extr)+(1-p))**(1/self.extr)))
-		elif 'postextr' in self.aggr_methods[self.aggr_index]:
-			p=aggrval
-			aggrval=p**self.extr
-		elif 'neyextr' in self.aggr_methods[self.aggr_index]:
-			p=aggrval
-			d=n*(math.sqrt(3*n**2-3*n+1)-2)/(n**2-n-1)
-			aggrval=p**d
-
-		return np.array([aggrval])
-
 	def all_aggregations(self, forecasts, norm=False):
 		self.aggr_index=0
 		self.compute_user_performance(forecasts)

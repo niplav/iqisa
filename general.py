@@ -10,7 +10,7 @@ import pandas as pd
 class ForecastSetHandler():
 	comparable_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
 
-	def __init__(self, probmargin=0.005):
+	def __init__(self, probmargin=0.005, forecasts=None):
 		self.probmargin=probmargin
 		self.with_cumul_scores=False
 		self.time_frontfilled=False
@@ -18,6 +18,7 @@ class ForecastSetHandler():
 		self.questions=pd.DataFrame()
 		self.aggregations=pd.DataFrame()
 		self.scores=pd.DataFrame()
+		self.forecasts=forecasts
 
 	def aggregate(self, aggregation_function, *args):
 		"""forecasts should be a pandas.DataFrame that contains columns
@@ -29,23 +30,18 @@ class ForecastSetHandler():
 		transformed_probs=np.array(aggregation_function(g, *args))
 		return pd.DataFrame({'question_id': np.array(g['question_id'])[0], 'probability': transformed_probs, 'outcome': np.array(g['outcome'])[0], 'answer_option': np.array(g['answer_option'])[0]})
 
-	# TODO: Move score_aggregations and score onto the same underlying
-	# function
-
 	def score_aggregations(self, scoring_rule, *args):
-		self.scores=self.aggregations.groupby(['question_id']).apply(self.apply_score_aggr, scoring_rule, *args)
-		self.scores.index=self.scores.index.droplevel(1)
-
-	def apply_score_aggr(self, g, scoring_rule, *args):
-		probabilities=np.array(g['probability'])
-		outcomes=np.array(g['outcome'])
-		options=np.array(g['answer_option'])
-		return pd.DataFrame({'score': np.array([scoring_rule(probabilities, outcomes==options, *args)])})
+		if len(self.aggregations)==0:
+			raise Exception('no aggregations computed yet, use .aggregate()')
+		self.score_forecasts(scoring_rule, self.aggregations, *args)
 
 	def score(self, scoring_rule, *args):
 		if len(self.forecasts)==0:
 			raise Exception('no forecasts loaded yet, use .load()')
-		self.scores=self.forecasts.groupby(['question_id']).apply(self.apply_score, scoring_rule, *args)
+		self.score_forecasts(scoring_rule, self.forecasts, *args)
+
+	def score_forecasts(self, scoring_rule, forecasts, *args):
+		self.scores=forecasts.groupby(['question_id']).apply(self.apply_score, scoring_rule, *args)
 		self.scores.index=self.scores.index.droplevel(1)
 
 	def apply_score(self, g, scoring_rule, *args):
@@ -123,22 +119,89 @@ class ForecastSetHandler():
 	# alternatively
 	# f.drop_duplicates(subset=['question_id', 'user_id', 'outcome', 'timestamp']).set_index('timestamp').groupby(['question_id', 'user_id', 'outcome']).resample('D').pad()
 
-	def frontfill_forecasts(self):
+	def frontfill(self):
 		"""forecasts should be a dataframe with at least these five fields:
 		question_id, user_id, timestamp, probability"""
 		if len(self.forecasts)==0:
 			raise Exception('no forecasts loaded yet, use .load()')
 
-		self.forecasts=self.forecasts.groupby(['question_id', 'user_id', 'answer_option']).apply(self.frontfill_group)
-		self.forecasts.index=self.forecasts.index.droplevel(['question_id', 'user_id', 'answer_option'])
+		self.forecasts=self.give_frontfilled(self.forecasts)
 		self.time_frontfilled=True
+
+	def give_frontfilled(self, forecasts):
+		forecasts=forecasts.groupby(['question_id', 'user_id', 'answer_option']).apply(self.frontfill_group)
+		forecasts.index=forecasts.index.droplevel(['question_id', 'user_id', 'answer_option'])
+		return forecasts
 
 	def frontfill_group(self, g):
 		"""warning: this makes the forecast ids useless"""
-		dates=pd.date_range(start=min(g.timestamp), end=max(g.date_closed), freq='D')
-		alldates=pd.DataFrame({'timestamp': dates})
-		g=g.merge(alldates, on='timestamp', how='outer')
+		dates=pd.date_range(start=min(g.timestamp), end=max(g.date_closed), freq='D', normalize=True)
+		alldates=pd.DataFrame({'date': dates})
+		g['date']=g['timestamp'].apply(lambda x: x.round(freq='D'))
+		g=g.merge(alldates, on='date', how='outer')
 		g=g.sort_values(by='timestamp')
-		g['timestamp']=g['timestamp'].fillna(g['timestamp'])
+		g['timestamp']=g['timestamp'].fillna(g['date'])
 		g=g.fillna(method='ffill')
+		g.drop(columns=['date'])
 		return g
+
+	# TODO: decay should probabld be a number, there should probably be an
+	# argument that specifies the extremising exponent
+	def generic_aggregate(self, g, summ='arith', format='probs', decay='nodec', extremize='noextr', extrfactor=3, fill=False, expertise=False):
+
+
+		n=len(g)
+
+		if n==0:
+			return
+
+		if fill:
+			g=self.give_frontfilled(g)
+
+		probabilities=g['probability']
+
+		if extremize=='befextr':
+			p=probabilities
+			probabilities=((p**extrfactor)/(((p**extrfactor)+(1-p))**(1/extrfactor)))
+
+		if decay=='dec':
+			if 'NULL' in g['date_suspend']: #ARGH
+				weights=np.ones_like(probabilities)
+			else:
+				t_diffs=g['date_suspend']-g['timestamp']
+				t_diffs=np.array([t.total_seconds() for t in t_diffs])
+				weights=0.99**(1/(1*86400)*t_diffs)
+		else:
+			weights=np.ones_like(probabilities)
+
+		if format=='odds':
+			probabilities=probabilities/(1-probabilities)
+		elif format=='logodds':
+			probabilities=probabilities/(1-probabilities)
+			probabilities=np.log(probabilities)
+
+		if summ=='arith':
+			aggrval=np.sum(weights*probabilities)/np.sum(weights)
+		elif summ=='geom':
+			aggrval=statistics.geometric_mean(probabilities)
+		elif summ=='median':
+			aggrval=np.median(probabilities)
+
+		if format=='odds':
+			aggrval=aggrval/(1+aggrval)
+		elif format=='logodds':
+			aggrval=np.exp(aggrval)
+			aggrval=aggrval/(1+aggrval)
+
+		if extremize=='gjpextr':
+			p=aggrval
+			aggrval=((p**extrfactor)/(((p**extrfactor)+(1-p))**(1/extrfactor)))
+		elif extremize=='postextr':
+			p=aggrval
+			aggrval=p**self.extr
+		elif extremize=='neyextr':
+			p=aggrval
+			d=n*(math.sqrt(3*n**2-3*n+1)-2)/(n**2-n-1)
+			aggrval=p**d
+
+		return np.array([aggrval])

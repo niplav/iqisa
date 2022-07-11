@@ -113,7 +113,7 @@ Whether cumulative scores have been added to the forecasts, type
 
 Whether frontfilled forecasts have been added to the forecasts,
 type `bool`. `False` by default. Is set to `True` automatically by
-`frontfill_forecasts`.
+`frontfill`.
 
 #### `forecasts`
 
@@ -331,7 +331,7 @@ It writes the result back to the field `forecasts` in the same object.
 The function is currently *very* slow (several hours for a dataset of
 500k forecasts on my laptop).
 
-#### `frontfill_forecasts()`
+#### `frontfill()`
 
 __Warning__: This function makes the dataset given to it ~100 times
 bigger, which might lead to running of out RAM.
@@ -344,7 +344,7 @@ given as an argument.
 
 ##### Arguments
 
-`frontfill_forecasts` reads from the field `forecasts`, and writes
+`frontfill` reads from the field `forecasts`, and writes
 to it. It throws an exception if the no forecasts have been loaded.
 
 ##### Example
@@ -356,9 +356,25 @@ to it. It throws an exception if the no forecasts have been loaded.
 	>>> s.load(survey_files)
 	>>> len(s.forecasts)
 	9999
-	>>> s.frontfill_forecasts()
+	>>> s.frontfill()
 	>>> len(s.forecasts)
-	1086926
+	1095631
+
+#### `give_frontfilled(forecasts)`
+
+##### Arguments
+
+##### Returns
+
+##### Example
+
+#### `generic_aggregate(g, summ='arith', format='probs', decay='nodec', extremize='noextr', extrfactor=3, fill=False, expertise=False)`
+
+##### Arguments
+
+##### Returns
+
+##### Example
 
 GJPForecastSetBase
 -------------------

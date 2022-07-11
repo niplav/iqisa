@@ -3,6 +3,7 @@ General
 	Import all previously implemented aggregation & scoring rules
 		Also write an aggregation rule that takes into account previous performance by forecasters
 	Better Brier score
+	Add **kwargs to the various generic functions
 
 Make fields for prediction market data and survey data consistent
 	What about prices before & after trades?
@@ -31,3 +32,4 @@ Forecasters ranked by previous performance
 		* outputs: input dataframe with cumulative scoring rule value & percentile among all forecasters
 
 Inkling data still fishy
+No subtly dropping data in market loading! (of voided questions, that is)
