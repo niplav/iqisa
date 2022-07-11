@@ -14,7 +14,7 @@ importing the library, creating a relevant object and loading the data
 from disk:
 
 	>>> import gjp
-	>>> m=gjp.GJPMarkets()
+	>>> m=gjp.Markets()
 	>>> m.load()
 	>>> m.forecasts.shape
 	(510591, 16)
@@ -90,10 +90,10 @@ ForecastSetHandler
 The base class that provides functions for forecast aggregation, scoring
 and more.
 
-### `__init__(probmargin=0.005)`
+### `__init__(probmargin=0.005, forecasts=None)`
 
-Constructs the object and initializes `probmargin` with the provided
-value.
+Constructs the object and initializes `probmargin` and `forecasts`
+with the provided value.
 
 ### Fields
 
@@ -144,19 +144,29 @@ Those columns are:
 * `q_status`: The status of the question the forecast was made on, type `str`.
 * `q_type`: The type of the question, type `int64`.
 
-This field is set by `load()` or `load_complete()`.
+This field is set by `load()` or `load_complete()`, or in `__init__`.
 
-<!--
-TODO:
 #### `questions`
--->
+
+This field is a panas DataFrame describing the question-specific data in
+the dataset. It is set either manually or by calling `load_questions()`
+in a subclass.
+
+Its columns are
+
+<!--TODO: describe further-->
+
+* `question_id`, `date_start`, `date_suspend`, `date_to_close`, `date_closed`, `outcome`, `q_type`, `q_status`, `days_open`, `n_opts`, `options`: As in the [description of `forecasts` above](#forecasts)
+* `q_text`
+* `q_desc`
+* `short_title`
 
 #### `aggregations`
 
 The data set by `aggregate`, a pandas DataFrame.
 
-Its columns are a subset of the columns of `forecasts`, with
-`question_id`, `probability`, `outcome` and `answer_option`.
+Its columns are a subset of the columns of `forecasts`: `question_id`,
+`probability`, `outcome` and `answer_option`.
 
 #### `scores`
 
@@ -187,7 +197,9 @@ To elaborate a bit further:
 		* A DataFrame that is a subset of rows of `forecasts` (all with the same `question_id`)
 		* Optional arguments passed on by `aggregate`
 	* Returns: This function should return a probability in (0,1)
-* Optional arguments which are passed to the aggregation function
+* Optional arguments which are passed to the aggregation function:
+	* `*args` are the variable arguments, and
+	* `**kwargs` are the variable keyword arguments
 
 ##### Returns
 
@@ -223,7 +235,9 @@ To elaborate a bit further:
 		* Second argument: A numpy array containing the outcomes (in {0,1})
 		* Optional arguments passed on by `score`
 	* Returns: This function should return a floating point number
-* Optional arguments which are passed to the scoring rule
+* Optional arguments which are passed to the scoring rule:
+	* `*args` are the variable arguments, and
+	* `**kwargs` are the variable keyword arguments
 
 ##### Returns
 
@@ -268,10 +282,6 @@ We can now calculate the average Brier score on all questions:
 	50%      0.141251
 	75%      0.248579
 	max      0.841011
-
-<!--TODO
-#### `normalise`
--->
 
 #### `add_cumul_user_score(scoring_rule, *args, **kwargs)`
 
@@ -351,7 +361,7 @@ to it. It throws an exception if the no forecasts have been loaded.
 
 	$ python3
 	>>> import gjp
-	>>> s=gjp.GJPSurveys()
+	>>> s=gjp.Surveys()
 	>>> survey_files=['./data/gjp/survey_fcasts_mini.yr1.csv']
 	>>> s.load(survey_files)
 	>>> len(s.forecasts)
@@ -362,7 +372,13 @@ to it. It throws an exception if the no forecasts have been loaded.
 
 #### `give_frontfilled(forecasts)`
 
+A "static" method that takes a set of forecasts as a DataFrame and
+returns the frontfilled DataFrame. Does not change any fields of the
+object it belongs to.
+
 ##### Arguments
+
+* `forecasts`, a pandas DataFrame, necessary columns are `question_id`, `user_id`, `answer_option`, `timestamp`, `date_closed`
 
 ##### Returns
 
@@ -376,8 +392,23 @@ to it. It throws an exception if the no forecasts have been loaded.
 
 ##### Example
 
-GJPForecastSetBase
+#### `normalise`
+
+Changes the field `aggregations` so that probabilities assigned to
+different options on the same question sum to 1.
+
+##### Arguments
+
+None.
+
+##### Returns
+
+Nothing, instead mutates the field `aggregations`.
+
+ForecastSetBase
 -------------------
+
+Inherits from [ForecastSetHandler](#ForecastSetHandler).
 
 ### Fields
 
@@ -408,8 +439,10 @@ The GJOpen forecast data has some peculiarities, which are described here:
 
 #### `load(files=None)`
 
-GJPMarkets
+Markets
 -----------
+
+Inherits from [ForecastSetBase](#ForecastSetBase).
 
 ### Fields
 
@@ -456,8 +489,10 @@ trades on prediction markets:
 * `prob_est`
 * `market_name`
 
-GJPSurveys
+Surveys
 -----------
+
+Inherits from [ForecastSetBase](#ForecastSetBase).
 
 ### Fields
 

@@ -135,7 +135,7 @@ class ForecastSetHandler():
 
 	def frontfill_group(self, g):
 		"""warning: this makes the forecast ids useless"""
-		dates=pd.date_range(start=min(g.timestamp), end=max(g.date_closed), freq='D', normalize=True)
+		dates=pd.date_range(start=min(g['timestamp']), end=max(g['date_closed']), freq='D', normalize=True)
 		alldates=pd.DataFrame({'date': dates})
 		g['date']=g['timestamp'].apply(lambda x: x.round(freq='D'))
 		g=g.merge(alldates, on='date', how='outer')
@@ -148,8 +148,6 @@ class ForecastSetHandler():
 	# TODO: decay should probabld be a number, there should probably be an
 	# argument that specifies the extremising exponent
 	def generic_aggregate(self, g, summ='arith', format='probs', decay='nodec', extremize='noextr', extrfactor=3, fill=False, expertise=False):
-
-
 		n=len(g)
 
 		if n==0:

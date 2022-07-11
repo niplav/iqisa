@@ -9,7 +9,7 @@ import pandas as pd
 
 import general
 
-class GJPForecastSetBase(general.ForecastSetHandler):
+class ForecastSetBase(general.ForecastSetHandler):
 	questions_files=['./data/gjp/ifps.csv']
 
 	def __init__(self, probmargin=0.005):
@@ -49,7 +49,7 @@ class GJPForecastSetBase(general.ForecastSetHandler):
 	def load_complete(self, files=None):
 		return
 
-class GJPMarkets(GJPForecastSetBase):
+class Markets(ForecastSetBase):
 	broken_files=['./data/gjp/pm_transactions.lum1.yr3.csv', './data/gjp/pm_transactions.lum2a.yr3.csv', './data/gjp/pm_transactions.lum2.yr3.csv']
 	files=['./data/gjp/pm_transactions.lum1.yr2.csv', './data/gjp/pm_transactions.lum2.yr2.csv', './data/gjp/pm_transactions.inkling.yr3.csv', './data/gjp/pm_transactions.control.yr4.csv', './data/gjp/pm_transactions.batch.train.yr4.csv', './data/gjp/pm_transactions.batch.notrain.yr4.csv', './data/gjp/pm_transactions.supers.yr4.csv', './data/gjp/pm_transactions.teams.yr4.csv']
 
@@ -324,7 +324,7 @@ class GJPMarkets(GJPForecastSetBase):
 
 		self.forecasts=forecasts
 
-class GJPSurveys(GJPForecastSetBase):
+class Surveys(ForecastSetBase):
 	files=['./data/gjp/survey_fcasts.yr1.csv', './data/gjp/survey_fcasts.yr2.csv', './data/gjp/survey_fcasts.yr3.csv.zip', './data/gjp/survey_fcasts.yr4.csv.zip']
 
 	def __init__(self, probmargin=0.005):
