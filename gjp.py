@@ -38,7 +38,7 @@ class GJPForecastSetBase(general.ForecastSetHandler):
 
 		questions=questions.rename(columns={'ifp_id': 'question_id'}, errors="raise")
 		questions.loc[:,'question_id']=questions['question_id'].map(self.simplify_id)
-		questions['question_id']=pd.to_numeric(questions['question_id'])
+		questions['question_id']=pd.to_numeric(questions['question_id'], downcast='float')
 
 		self.questions=questions
 
@@ -54,7 +54,7 @@ class GJPMarkets(GJPForecastSetBase):
 	files=['./data/gjp/pm_transactions.lum1.yr2.csv', './data/gjp/pm_transactions.lum2.yr2.csv', './data/gjp/pm_transactions.inkling.yr3.csv', './data/gjp/pm_transactions.control.yr4.csv', './data/gjp/pm_transactions.batch.train.yr4.csv', './data/gjp/pm_transactions.batch.notrain.yr4.csv', './data/gjp/pm_transactions.supers.yr4.csv', './data/gjp/pm_transactions.teams.yr4.csv']
 
 	year2_default_changes={
-		'fixes': ['timestamp', 'price_before_100', 'question_id_str', 'without_team_id', 'insert_outcomes'],
+		'fixes': ['timestamp', 'price_before_100', 'question_id_str', 'without_team_id', 'insert_outcomes', 'remove_voided', 'conditional_options_a'],
 		'column_rename': {
 			'IFPID': 'question_id',
 			'outcome': 'answer_option',
@@ -231,6 +231,7 @@ class GJPMarkets(GJPForecastSetBase):
 
 		self.load_questions()
 		questions=self.questions.loc[self.questions['q_status']!='voided']
+		voidedquestions=self.questions.loc[self.questions['q_status']=='voided'][['q_type', 'question_id']]
 
 		for f in files:
 			market=pd.read_csv(f)
@@ -284,6 +285,28 @@ class GJPMarkets(GJPForecastSetBase):
 				market=market.assign(team_id=0)
 			if 'insert_options' in self.fixes[f]['fixes']:
 				market['answer_option']='a'
+			# On conditional markets, the answer option refers to the branch
+			# of the conditional market ('a' is the first
+			# market (-1), 'b' is the second market (-2),
+			# etc. Don't ask, I didn't make this up). Therefore,
+			# we here have to insert the outcome from the
+			# questions, without burning ourselves.
+			if 'remove_voided' in self.fixes[f]['fixes']:
+				market['q_type']=market['answer_option'].apply(lambda x: x.encode()[0]-('a'.encode()[0]-1))
+				market=pd.merge(market, voidedquestions, on=['q_type', 'question_id'], how='outer', indicator=True)
+				market=market[~((market['_merge']=='both')|(market['_merge']=='right_only'))].drop('_merge', axis=1)
+				market=market.drop(['q_type'], axis=1)
+			# Since the field 'answer_option' on conditional prediction markets
+			# refers to the branch of the market (as per personal communication from
+			# the GJOpen team), the default answer for prices
+			# on conditional markets in 'a'. We have to set
+			# this here.
+			if 'conditional_options_a' in self.fixes[f]['fixes']:
+				onlytype=questions[['question_id', 'q_type']]
+				market=pd.merge(market, onlytype, on=['question_id'], how='inner')
+				market.loc[market['q_type']!=0].loc[market['q_type']!=6]='a'
+				market.loc[(market['q_type']!=0)&(market['q_type']!=6),'answer_option']='a'
+				market=market.drop(['q_type'], axis=1)
 
 			assert(len(market)>0)
 

@@ -45,12 +45,12 @@ function](https://forum.effectivealtruism.org/s/hjiBqAJNKhfJFq7kf/p/sMjcjnnpoAQC
 
 	>>> import statistics
 	>>> import numpy as np
-def geom_odds_aggr(forecasts):
-	probabilities=forecasts['probability']
-	probabilities=probabilities/(1-probabilities)
-	aggregated=statistics.geometric_mean(probabilities)
-	aggregated=aggregated/(1+aggregated)
-	return np.array([aggregated])
+	>>> def geom_odds_aggr(forecasts):
+	...    probabilities=forecasts['probability']
+	...    probabilities=probabilities/(1-probabilities)
+	...    aggregated=statistics.geometric_mean(probabilities)
+	...    aggregated=aggregated/(1+aggregated)
+	...    return np.array([aggregated])
 
 and use pass it to the `aggregate` method:
 
@@ -349,7 +349,9 @@ to it. It throws an exception if the no forecasts have been loaded.
 
 ##### Example
 
-	$ python3 -i gjplib.py
+	$ python3
+	>>> import gjp
+	>>> s=gjp.GJPSurveys()
 	>>> survey_files=['./data/gjp/survey_fcasts_mini.yr1.csv']
 	>>> s.load(survey_files)
 	>>> len(s.forecasts)

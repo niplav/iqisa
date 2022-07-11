@@ -120,6 +120,9 @@ class ForecastSetHandler():
 			cumul_rankings.append(percentile)
 		self.forecasts['cumul_perc']=np.array(cumul_rankings)
 
+	# alternatively
+	# f.drop_duplicates(subset=['question_id', 'user_id', 'outcome', 'timestamp']).set_index('timestamp').groupby(['question_id', 'user_id', 'outcome']).resample('D').pad()
+
 	def frontfill_forecasts(self):
 		"""forecasts should be a dataframe with at least these five fields:
 		question_id, user_id, timestamp, probability"""
