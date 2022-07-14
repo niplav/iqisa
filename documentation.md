@@ -6,24 +6,55 @@ datasets, focused on taking on the burden of dealing with differently
 organised datasets off the user and presenting them with a unified
 interface.
 
-An Example of Typical Usage
-----------------------------
+Examples
+--------
 
-A typical example of someone using the library would begin by the person
-importing the library, creating a relevant object and loading the data
-from disk:
+### Minimal Example
 
+The minimal steps for getting started with the library are quite
+simple. Here's the code for loading the data from the Good Judgment
+Project prediction markets:
+
+	$ python3
 	>>> import gjp
 	>>> m=gjp.Markets()
 	>>> m.load()
-	>>> m.forecasts.shape
-	(510591, 16)
+
+Similarly, one can also load the data from the Good Judgment project
+surveys:
+
+	>>> s=gjp.Surveys()
+	>>> s.load()
 
 The `load` function might throw some warnings.
+
+Now `m.forecasts` contains the forecasts from all prediction markets
+from the Good Judgement Project as a pandas DataFrame<!--TODO: link-->
+(and `s.forecasts` all from the surveys):
+
+	>>> m.forecasts
+	        question_id  user_id  team_id  probability  ... n_opts          options q_status q_type
+	0            1040.0   6203.0      0.0       0.4000  ...      2  (a) Yes, (b) No   closed      0
+	1            1040.0   6203.0      0.0       0.4500  ...      2  (a) Yes, (b) No   closed      0
+	...             ...      ...      ...          ...  ...    ...              ...      ...    ...
+	735430       1542.0  21975.0      9.0       0.0108  ...      2  (a) Yes, (b) No   closed      0
+	735431       1542.0  13854.0     28.0       0.0049  ...      2  (a) Yes, (b) No   closed      0
+
+	[735432 rows x 16 columns]
+
+The function [`load`](#loadfilesNone) is the central piece of the library,
+it gives you, the user, the data in [a format](#forecasts) that can be
+compared across datasets. The other functions are merely suggestions and
+can be ignored if they don't fit your use-case (iqisa wants to provide
+you with the data, and not be opinionated with what you do with that
+data in the end, and how you do it).
+
+### Aggregating and Scoring
 
 The user could now want to just know how good the forecasters were
 at forecasting on all questions:
 
+	>>> import numpy as np
 	>>> def brier_score(probabilities, outcomes):
 	...	return np.mean((probabilities-outcomes)**2)
 	>>> m.score(brier_score)
@@ -35,8 +66,11 @@ at forecasting on all questions:
 	...               ...
 	5005.0       0.140392
 	6413.0       0.109608
+
+	[411 rows x 1 columns]
 	>>> np.mean(m.scores)
-	score    0.179346
+	score    0.137272
+	dtype: float64
 
 <!--**-->
 
@@ -60,10 +94,10 @@ and use pass it to the `aggregate` method:
 	0        1017.0     0.370863       b             a
 	0        1038.0     0.580189       a             a
 	..          ...          ...     ...           ...
-	0        6413.0     0.215005     NaN             d
-	0        6413.0     0.291428     NaN             e
-	
-	[1127 rows x 4 columns]
+	0        5005.0     0.194700       a             c
+	0        6413.0     0.291428       b             a
+
+	[713 rows x 4 columns]
 
 Now, after aggregating the forecasts, is the Brier score better?
 
@@ -74,15 +108,51 @@ Now, after aggregating the forecasts, is the Brier score better?
 	1017.0       0.137540
 	1038.0       0.176242
 	...               ...
-	5005.0       0.164676
-	6413.0       0.060235
+	5005.0       0.334230
+	6413.0       0.058682
 
-	[410 rows x 1 columns]
+	[411 rows x 1 columns]
 	>>> >>> np.mean(m.scores)
-	score    0.150018
+	score    0.081516
 	dtype: float64
 
 Yes it is.
+
+### Scoring Users
+
+Unlike for scoring by question, there is no library-internal abstraction
+for scoring users, but this is easy to implement:
+
+	def brier_score_user(user_forecasts):
+		user_right=(user_forecasts['outcome']==user_forecasts['answer_option'])
+		probabilities=user_forecasts['probability']
+		return np.mean((probabilities-user_right)**2)
+
+	trader_scores=m.forecasts.groupby(['user_id']).apply(brier_score_user)
+
+However, we might want to exclude traders who have made fewer than, let's
+say, 100 trades:
+
+	filtered_trader_scores=m.forecasts.groupby(['user_id']).filter(lambda x: len(x)>100).groupby(['user_id']).apply(brier_score_user)
+
+Surprisingly, the scores of the traders with >100 trades are not
+meaningfully better:
+
+	>>> np.mean(trader_scores)
+	0.16146137047522022
+	>>> np.mean(filtered_trader_scores)
+	0.16014322229834974
+
+However, filtering removes outliers (both positive and negative):
+
+	>>> filtered_trader_scores.min()
+	0.018641220238095235
+	>>> filtered_trader_scores.max()
+	0.7227719402985074
+	>>> trader_scores.min()
+	0.0001
+	>>> trader_scores.max()
+	0.7921
 
 ForecastSetHandler
 -------------------
@@ -157,9 +227,9 @@ Its columns are
 <!--TODO: describe further-->
 
 * `question_id`, `date_start`, `date_suspend`, `date_to_close`, `date_closed`, `outcome`, `q_type`, `q_status`, `days_open`, `n_opts`, `options`: As in the [description of `forecasts` above](#forecasts)
-* `q_text`
-* `q_desc`
-* `short_title`
+* `q_text`: The title of the question, as a `str`.
+* `q_desc`: The description of the question, including resolution criteria, type `str`.
+* `short_title`: The shortened title of the question, type `str`.
 
 #### `aggregations`
 
