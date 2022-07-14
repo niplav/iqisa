@@ -14,11 +14,13 @@ class ForecastSetHandler():
 		self.probmargin=probmargin
 		self.with_cumul_scores=False
 		self.time_frontfilled=False
-		self.forecasts=pd.DataFrame()
 		self.questions=pd.DataFrame()
 		self.aggregations=pd.DataFrame()
 		self.scores=pd.DataFrame()
-		self.forecasts=forecasts
+		if forecasts==None:
+			self.forecasts=pd.DataFrame()
+		else:
+			self.forecasts=forecasts
 
 	def aggregate(self, aggregation_function, *args, **kwargs):
 		"""forecasts should be a pandas.DataFrame that contains columns
