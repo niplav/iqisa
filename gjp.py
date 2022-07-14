@@ -50,8 +50,7 @@ class ForecastSetBase(general.ForecastSetHandler):
 		return
 
 class Markets(ForecastSetBase):
-	broken_files=['./data/gjp/pm_transactions.lum1.yr3.csv', './data/gjp/pm_transactions.lum2a.yr3.csv', './data/gjp/pm_transactions.lum2.yr3.csv']
-	files=['./data/gjp/pm_transactions.lum1.yr2.csv', './data/gjp/pm_transactions.lum2.yr2.csv', './data/gjp/pm_transactions.inkling.yr3.csv', './data/gjp/pm_transactions.control.yr4.csv', './data/gjp/pm_transactions.batch.train.yr4.csv', './data/gjp/pm_transactions.batch.notrain.yr4.csv', './data/gjp/pm_transactions.supers.yr4.csv', './data/gjp/pm_transactions.teams.yr4.csv']
+	files=['./data/gjp/pm_transactions.lum1.yr2.csv', './data/gjp/pm_transactions.lum2.yr2.csv', './data/gjp/pm_transactions.lum1.yr3.csv', './data/gjp/pm_transactions.lum2a.yr3.csv', './data/gjp/pm_transactions.lum2.yr3.csv', './data/gjp/pm_transactions.inkling.yr3.csv', './data/gjp/pm_transactions.control.yr4.csv', './data/gjp/pm_transactions.batch.train.yr4.csv', './data/gjp/pm_transactions.batch.notrain.yr4.csv', './data/gjp/pm_transactions.supers.yr4.csv', './data/gjp/pm_transactions.teams.yr4.csv']
 
 	year2_default_changes={
 		'fixes': ['timestamp', 'price_before_100', 'question_id_str', 'without_team_id', 'insert_outcomes', 'remove_voided', 'conditional_options_a'],
@@ -72,10 +71,10 @@ class Markets(ForecastSetBase):
 	}
 
 	year3_default_changes={
-		'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str', 'with_prob_est', 'without_team_id', 'insert_outcomes'],
+		'fixes': ['timestamp', 'price_before_100', 'price_after_100', 'prob_est_100', 'question_id_str', 'with_prob_est', 'without_team_id', 'insert_outcomes', 'remove_voided', 'conditional_options_a'],
 		'column_rename': {
 			'IFPID': 'question_id',
-			'Outcome': 'outcome',
+			'Outcome': 'answer_option',
 			'User.ID': 'user_id',
 			'Op.Type': 'op_type',
 			'Order.ID': 'order_id',
@@ -122,10 +121,10 @@ class Markets(ForecastSetBase):
 		'./data/gjp/pm_transactions.lum1.yr3.csv': year3_default_changes,
 		'./data/gjp/pm_transactions.lum2a.yr3.csv': year3_default_changes,
 		'./data/gjp/pm_transactions.lum2.yr3.csv': {
-			'fixes': ['timestamp', 'price_before_100', 'prob_est_100', 'question_id_str', 'team_bad', 'with_after_trade', 'with_prob_est'],
+			'fixes': ['timestamp', 'price_before_100', 'prob_est_100', 'question_id_str', 'team_bad', 'with_after_trade', 'insert_outcomes', 'with_prob_est', 'remove_voided', 'conditional_options_a'],
 			'column_rename': {
 				'IFPID': 'question_id',
-				'Outcome': 'outcome',
+				'Outcome': 'answer_option',
 				'User.ID': 'user_id',
 				'Team': 'team_id',
 				'Op.Type': 'op_type',
@@ -149,7 +148,7 @@ class Markets(ForecastSetBase):
 			}
 		},
 		'./data/gjp/pm_transactions.inkling.yr3.csv': {
-			'fixes': ['timestamp', 'created_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'id_by_name', 'option_from_stock_name', 'with_after_trade', 'with_prob_est', 'without_team_id', 'insert_outcomes'],
+			'fixes': ['timestamp', 'created_date_us', 'price_before_perc', 'price_after_perc', 'prob_est_perc', 'id_by_name', 'option_from_stock_name', 'with_after_trade', 'with_prob_est', 'without_team_id', 'insert_outcomes', 'remove_voided', 'conditional_options_a'],
 			'column_rename': {
 				'trade.id': 'order_id',
 				'market.name': 'market_name',
@@ -283,16 +282,21 @@ class Markets(ForecastSetBase):
 				market.loc[market['prob_est']>=1, 'prob_est']=1-self.probmargin
 			if 'without_team_id' in self.fixes[f]['fixes']:
 				market=market.assign(team_id=0)
-			if 'insert_options' in self.fixes[f]['fixes']:
-				market['answer_option']='a'
 			# On conditional markets, the answer option refers to the branch
-			# of the conditional market ('a' is the first
-			# market (-1), 'b' is the second market (-2),
-			# etc. Don't ask, I didn't make this up). Therefore,
-			# we here have to insert the outcome from the
-			# questions, without burning ourselves.
+			# of the conditional market ('a' is the first market
+			# (-1), 'b' is the second market (-2), etc. Don't
+			# ask, I didn't make this up). Therefore, we here
+			# have to remove forecasts on voided questions
+			# from the dataset.  Furthermore, the answer on
+			# the non-voided conditional market is always
+			# assumed to be "a", so we have to insert it.
 			if 'remove_voided' in self.fixes[f]['fixes']:
+				# We assume that the answer_option designates the branch
 				market['q_type']=market['answer_option'].apply(lambda x: x.encode()[0]-('a'.encode()[0]-1))
+				# We remove the forecasts on voided questions
+				# from the dataset by first outer joining the forecasts
+				# and the voided questions, and then removing
+				# rows where both occurred.
 				market=pd.merge(market, voidedquestions, on=['q_type', 'question_id'], how='outer', indicator=True)
 				market=market[~((market['_merge']=='both')|(market['_merge']=='right_only'))].drop('_merge', axis=1)
 				market=market.drop(['q_type'], axis=1)
@@ -303,6 +307,9 @@ class Markets(ForecastSetBase):
 			# this here.
 			if 'conditional_options_a' in self.fixes[f]['fixes']:
 				onlytype=questions[['question_id', 'q_type']]
+				# this works because the question_ids
+				# of onlytype are a superset of the
+				# question_ids of questions.
 				market=pd.merge(market, onlytype, on=['question_id'], how='inner')
 				market.loc[(market['q_type']!=0)&(market['q_type']!=6),'answer_option']='a'
 				market=market.drop(['q_type'], axis=1)
