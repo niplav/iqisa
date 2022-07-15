@@ -12,6 +12,9 @@ Finish documentation
 
 Data in general
 	Unify fields, think about better names for fields
+	Date fields:
+		Boil down to date_start (rename to date_open?), date_close, date_resolve
+		Every other date field goes into the load_complete stuff
 	Field order:
 	{general} question_id, user_id, probability, answer_option, timestamp,
 	{question} outcome, date_start, date_suspend, date_to_close, date_closed, n_opts, options, q_status, q_type
@@ -19,8 +22,6 @@ Data in general
 Market data
 	6413 sometimes has no result in market data, I suspect there's no result in many of them!
 	With year 2/3 data, is the field price the price before or after the trade?
-
-Finally execute it on the whole data
 
 Forecasters ranked by previous performance
 	Add the option to pass user-defined data along in `calculate_aggregate_score`

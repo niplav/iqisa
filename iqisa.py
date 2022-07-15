@@ -180,7 +180,7 @@ def generic_aggregate(group, summ='arith', format='probs', decay='nodec', extrem
 		return np.array([aggrval])
 
 class ForecastSetHandler():
-	comparable_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'date_start', 'date_suspend', 'date_to_close', 'date_closed', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
+	comparable_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'open_time', 'close_time', 'resolve_time', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
 
 	def __init__(self, probmargin=0.005, forecasts=None):
 		self.probmargin=probmargin

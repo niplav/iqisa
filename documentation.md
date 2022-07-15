@@ -443,10 +443,14 @@ Those columns are:
 * `answer_option`: The answer option selected by the user, type `str`.
 * `timestamp`: The time at which the forecast/trade was made, type `datetime64[ns]`.
 * `outcome`: The outcome of the question, type `str`.
-* `date_start`: The date at which the question was opened, i.e. at which forecasts could start. Type `datetime64[ns]`
-* `date_suspend`: The datetime at which the question was suspended, i.e. at which no further forecasts were possible. Type `datetime64[ns]`. The biggest difference from `date_closed` seems to be that it also includes the time of closures.
+* `open_time`: The date at which the question was opened, i.e. at which forecasts could start. Type `datetime64[ns]`
+* `close_time`
+* `resolve_time`
+<!--
+* `date_start`: * `date_suspend`: The datetime at which the question was suspended, i.e. at which no further forecasts were possible. Type `datetime64[ns]`. The biggest difference from `date_closed` seems to be that it also includes the time of closures.
 * `date_to_close`: The planned closing date of the question, type `datetime64[ns]`.
 * `date_closed`: The datetime at which the question was closed, type `datetime64[ns]`.
+-->
 * `days_open`: The days for which the quesion was open, type `float64`.
 * `n_opts`: The number of options the question had, type `int64`.
 * `options`: A string containing a description of the different possible options, type `str`.

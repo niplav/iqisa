@@ -36,7 +36,7 @@ class ForecastSetBase(iqisa.ForecastSetHandler):
 		for f in date_fields:
 			questions[f]=pd.to_datetime(questions[f], dayfirst=True)
 
-		questions=questions.rename(columns={'ifp_id': 'question_id'}, errors="raise")
+		questions=questions.rename(columns={'ifp_id': 'question_id', 'date_start': 'open_time', 'date_suspend': 'close_time', 'date_to_close': 'resolve_time', 'date_closed': 'close_date'}, errors="raise")
 		questions.loc[:,'question_id']=questions['question_id'].map(self.simplify_id)
 		questions['question_id']=pd.to_numeric(questions['question_id'], downcast='float')
 
@@ -319,11 +319,11 @@ class Markets(ForecastSetBase):
 			forecasts=pd.concat([forecasts, market], join='outer')
 
 		# add the some question-specific information to the trades
-		qdata=questions.loc[questions['question_id'].isin(forecasts['question_id'])][['question_id', 'date_closed', 'date_start', 'date_suspend', 'date_to_close', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']]
+		qdata=questions.loc[questions['question_id'].isin(forecasts['question_id'])][['question_id', 'open_time', 'close_time', 'resolve_time', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']]
 
 		forecasts=pd.merge(forecasts, qdata, on='question_id', how='inner')
 
-		# prices in (-∞,0]∪[1,∞] are truncated to [MIN_PROB, 1-MIN_PROB]
+		# prices in (-∞,0]∪[1,∞) are truncated to [MIN_PROB, 1-MIN_PROB]
 		forecasts.loc[forecasts['probability']<=0, 'probability']=self.probmargin
 		forecasts.loc[forecasts['probability']>=1, 'probability']=1-self.probmargin
 
