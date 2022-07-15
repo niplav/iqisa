@@ -7,9 +7,9 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
-import general
+import iqisa
 
-class ForecastSetBase(general.ForecastSetHandler):
+class ForecastSetBase(iqisa.ForecastSetHandler):
 	questions_files=['./data/gjp/ifps.csv']
 
 	def __init__(self, probmargin=0.005):

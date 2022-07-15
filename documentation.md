@@ -17,6 +17,7 @@ Project prediction markets:
 
 	$ python3
 	>>> import gjp
+	>>> import iqisa as iqs
 	>>> m=gjp.Markets()
 	>>> m.load()
 
@@ -57,8 +58,8 @@ at forecasting on all questions:
 	>>> import numpy as np
 	>>> def brier_score(probabilities, outcomes):
 	...	return np.mean((probabilities-outcomes)**2)
-	>>> m.score(brier_score)
-	>>> m.scores
+	>>> scores=iqs.score(m.forecasts, brier_score)
+	>>> scores
 	                score
 	question_id          
 	1017.0       0.147917
@@ -68,7 +69,7 @@ at forecasting on all questions:
 	6413.0       0.109608
 
 	[411 rows x 1 columns]
-	>>> np.mean(m.scores)
+	>>> np.mean(scores)
 	score    0.137272
 	dtype: float64
 
@@ -88,8 +89,8 @@ function](https://forum.effectivealtruism.org/s/hjiBqAJNKhfJFq7kf/p/sMjcjnnpoAQC
 
 and use pass it to the `aggregate` method:
 
-	>>> m.aggregate(geom_odds_aggr)
-	>>> m.aggregations
+	>>> aggregations=iqs.aggregate(m.forecasts, geom_odds_aggr)
+	>>> aggregations
 	    question_id  probability outcome answer_option
 	0        1017.0     0.370863       b             a
 	0        1038.0     0.580189       a             a
@@ -101,8 +102,8 @@ and use pass it to the `aggregate` method:
 
 Now, after aggregating the forecasts, is the Brier score better?
 
-	>>> m.score_aggregations(brier_score)
-	>>> m.scores
+	>>> aggr_scores=iqs.score_aggregations(aggregations, brier_score)
+	>>> aggr_scores
 	                score
 	question_id          
 	1017.0       0.137540
@@ -112,7 +113,7 @@ Now, after aggregating the forecasts, is the Brier score better?
 	6413.0       0.058682
 
 	[411 rows x 1 columns]
-	>>> >>> np.mean(m.scores)
+	>>> np.mean(aggr_scores)
 	score    0.081516
 	dtype: float64
 
@@ -128,31 +129,269 @@ for scoring users, but this is easy to implement:
 		probabilities=user_forecasts['probability']
 		return np.mean((probabilities-user_right)**2)
 
-	trader_scores=m.forecasts.groupby(['user_id']).apply(brier_score_user)
+	trader_scores=iqs.score(m.forecasts, brier_score, on=['user_id'])
 
 However, we might want to exclude traders who have made fewer than, let's
 say, 100 trades:
 
-	filtered_trader_scores=m.forecasts.groupby(['user_id']).filter(lambda x: len(x)>100).groupby(['user_id']).apply(brier_score_user)
+	filtered_trader_scores=iqs.score(m.forecasts.groupby(['user_id']).filter(lambda x: len(x)>100), brier_score, on=['user_id'])
 
 Surprisingly, the scores of the traders with >100 trades are not
 meaningfully better:
 
 	>>> np.mean(trader_scores)
-	0.16146137047522022
+	score    0.160547
+	dtype: float64
 	>>> np.mean(filtered_trader_scores)
-	0.16014322229834974
+	score    0.15809
+	dtype: float64
 
 However, filtering removes outliers (both positive and negative):
 
 	>>> filtered_trader_scores.min()
-	0.018641220238095235
+	score    0.018641
+	dtype: float64
 	>>> filtered_trader_scores.max()
-	0.7227719402985074
+	score    0.722772
+	dtype: float64
 	>>> trader_scores.min()
-	0.0001
+	score    0.0001
+	dtype: float64
 	>>> trader_scores.max()
-	0.7921
+	score    0.7921
+	dtype: float64
+
+General Functions
+------------------
+
+### `aggregate(forecasts, aggregation_function, on=['question_id', 'answer_option'], *args, **kwargs)`
+
+Aggregate forecasts on questions by running `aggregation_functin` over
+the field `forecasts`, aggregation method provided by the user.
+
+#### Arguments
+
+Throws an exception if there are no forecasts loaded (i.e. the number
+of rows of `forecasts` is zero).
+
+The type signature of the function is
+
+	aggregate: (DataFrame × Optional(arguments) -> [0,1]) × Optional(arguments)
+
+To elaborate a bit further:
+
+* First argument (`aggregation_function`): The user-defined aggregation function, which is called for on each set of forecasts made on the same question for the same answer option.
+	* Receives:
+		* A DataFrame that is a subset of rows of `forecasts` (all with the same `question_id`)
+		* Optional arguments passed on by `aggregate`
+	* Returns: This function should return a probability in (0,1)
+* Optional arguments which are passed to the aggregation function:
+	* `*args` are the variable arguments, and
+	* `**kwargs` are the variable keyword arguments
+
+#### Returns
+
+The result of the aggregation is written into the field `aggregations`.
+
+One column per `answer_option` and `question_id` (i.e. one column for
+answer option 'a' on question 1, one for answer option 'b' on question 1,
+on for answer option 'a' on question 2 etc.).
+
+### `score(forecasts, scoring_rule, on=['question_id'] *args, **kwargs)` and `score_aggregations(scoring_rule, *args, **kwargs)`
+
+Score aggregated predictions on questions, method can be given by
+the user.
+
+`score` takes forecasts from the field `forecasts`, while
+`score_aggregations` (unsurprisingly) scores forecasts previously
+aggregated.
+
+#### Arguments
+
+Throws an exception if there are no forecasts loaded/aggregations computed
+(i.e. the number of rows of `forecasts`/`aggregations` is zero).
+
+The type signature of the function is
+
+	score: ([0,1]ⁿ × {0,1}ⁿ × Optional(arguments) -> float) × Optional(arguments)
+
+To elaborate a bit further:
+
+* First argument (`scoring_rule`): The scoring rule for forecasts.
+	* Receives:
+		* First argument: A numpy array containing the probabilities (in (0,1)
+		* Second argument: A numpy array containing the outcomes (in {0,1})
+		* Optional arguments passed on by `score`
+	* Returns: This function should return a floating point number
+* Optional arguments which are passed to the scoring rule:
+	* `*args` are the variable arguments, and
+	* `**kwargs` are the variable keyword arguments
+
+#### Returns
+
+The results are written onto the field `scores`.
+
+#### Example
+
+We aggregate by calculating the arithmetic mean of all forecasts made
+on a question & option, and score with the Brier score:
+
+	def arith_aggr(forecasts):
+		return np.array([np.mean(forecasts['probability'])])
+
+	def brier_score(probabilities, outcomes):
+		return np.mean((probabilities-outcomes)**2)
+
+<!--**-->
+
+Using these in the repl:
+
+	>>> aggregations=aggregate(arith_aggr)
+	>>> m.score(brier_score)
+	>>> m.scores
+	question_id
+	1017.0       0.147917
+	1038.0       0.177000
+	...               ...
+	5005.0       0.140392
+	6413.0       0.109608
+
+	[410 rows x 1 columns]
+
+We can now calculate the average Brier score on all questions:
+
+	>>> m.scores.describe()
+	            score
+	count  410.000000
+	mean     0.179346
+	std      0.147413
+	min      0.006786
+	25%      0.069669
+	50%      0.141251
+	75%      0.248579
+	max      0.841011
+
+### `add_cumul_user_score(forecasts, scoring_rule, *args, **kwargs)`
+
+Change `forecasts` so that it has contains a new field `cumul_score`. The
+field contains the past performance of the user making that forecast,
+before the time of prediction.
+
+#### Arguments
+
+`add_cumul_user_score` reads the forecasts from the field `forecasts`,
+and writes them back to `forecasts`.
+
+Throws an exception if there are no forecasts loadedcomputed (i.e. the
+number of rows of `forecasts` is zero).
+
+The type signature of the function is
+
+	cumul_user_score: ([0,1]ⁿ × {0,1}ⁿ × Optional(arguments) -> float) × Optional(arguments)
+
+* First argument (`scoring_rule`): the scoring rule by which the performance will be judged
+	* Receives:
+		* First argument: A numpy array containing the probabilities (in (0,1)
+		* Second argument: A numpy array containing the outcomes (in {0,1})
+		* Optional arguments passed on by `cumul_user_score`
+	* Returns: This function should return a floating point number
+* Optional additional arguments that will be passed on to the scoring rule
+
+#### Returns
+
+A new DataFrame that is a copy of `forecasts` is written to the field
+`forecasts`, with the additional column `cumul_score`: The score of the
+user making the forecast for all questions that have resolved before
+the current prediction (that is, before `timestamp`), as judged by
+`scoring_rule`.
+
+### `add_cumul_user_perc(forecasts, lower_better=True)`
+
+Based on cumulative past scores, add the percentile of forecaster
+performance the forecaster finds themselves in at the time of forecasting.
+
+#### Arguments
+
+`add_cumul_user_perc` reads from the field `forecasts`, and writes
+to it. It throws an exception if the function `add_cumul_user_score`
+hasn't been called on the data before.
+
+The function takes one named argument `lower_better` that, if `True`,
+assumes that lower values in `cumul_score` indicate better performance,
+and if `False`, assumes that higher values in the same field are better.
+
+#### Returns
+
+It writes the result back to the field `forecasts` in the same object.
+
+#### Notes
+
+The function is currently *very* slow (several hours for a dataset of
+500k forecasts on my laptop).
+
+### `frontfill(forecasts)`
+
+__Warning__: This function makes the dataset given to it ~100 times
+bigger, which might lead to running of out RAM.
+
+Return a set of forecasts so that forecasts by individual forecasters are
+repeated daily until they make a new forecast or the question is closed.
+
+This function returns a new DataFrame and doesn't change the DataFrame
+given as an argument.
+
+#### Arguments
+
+`frontfill` reads from the field `forecasts`, and writes
+to it. It throws an exception if the no forecasts have been loaded.
+
+#### Example
+
+	$ python3
+	>>> import gjp
+	>>> s=gjp.Surveys()
+	>>> survey_files=['./data/gjp/survey_fcasts_mini.yr1.csv']
+	>>> s.load(survey_files)
+	>>> len(s.forecasts)
+	9999
+	>>> s.frontfill()
+	>>> len(s.forecasts)
+	1095631
+
+### `give_frontfilled(forecasts)`
+
+A "static" method that takes a set of forecasts as a DataFrame and
+returns the frontfilled DataFrame. Does not change any fields of the
+object it belongs to.
+
+#### Arguments
+
+* `forecasts`, a pandas DataFrame, necessary columns are `question_id`, `user_id`, `answer_option`, `timestamp`, `date_closed`
+
+#### Returns
+
+#### Example
+
+### `generic_aggregate(group, summ='arith', format='probs', decay='nodec', extremize='noextr', extrfactor=3, fill=False, expertise=False)`
+
+#### Arguments
+
+#### Returns
+
+#### Example
+
+### `normalise`
+
+Changes the field `aggregations` so that probabilities assigned to
+different options on the same question sum to 1.
+
+#### Arguments
+
+None.
+
+#### Returns
+
+Nothing, instead mutates the field `aggregations`.
 
 ForecastSetHandler
 -------------------
@@ -245,235 +484,6 @@ DataFrame. Rows are question IDs (of type `float`, columns are scores
 (also type `float`).
 
 ### Functions
-
-#### `aggregate(aggregation_function, *args, **kwargs)`
-
-Aggregate forecasts on questions by running `aggregation_functin` over
-the field `forecasts`, aggregation method provided by the user.
-
-##### Arguments
-
-Throws an exception if there are no forecasts loaded (i.e. the number
-of rows of `forecasts` is zero).
-
-The type signature of the function is
-
-	aggregate: (DataFrame × Optional(arguments) -> [0,1]) × Optional(arguments)
-
-To elaborate a bit further:
-
-* First argument (`aggregation_function`): The user-defined aggregation function, which is called for on each set of forecasts made on the same question for the same answer option.
-	* Receives:
-		* A DataFrame that is a subset of rows of `forecasts` (all with the same `question_id`)
-		* Optional arguments passed on by `aggregate`
-	* Returns: This function should return a probability in (0,1)
-* Optional arguments which are passed to the aggregation function:
-	* `*args` are the variable arguments, and
-	* `**kwargs` are the variable keyword arguments
-
-##### Returns
-
-The result of the aggregation is written into the field `aggregations`.
-
-One column per `answer_option` and `question_id` (i.e. one column for
-answer option 'a' on question 1, one for answer option 'b' on question 1,
-on for answer option 'a' on question 2 etc.).
-
-#### `score(scoring_rule, *args, **kwargs)` and `score_aggregations(scoring_rule, *args, **kwargs)`
-
-Score aggregated predictions on questions, method can be given by
-the user.
-
-`score` takes forecasts from the field `forecasts`, while
-`score_aggregations` (unsurprisingly) scores forecasts previously
-aggregated.
-
-##### Arguments
-
-Throws an exception if there are no forecasts loaded/aggregations computed
-(i.e. the number of rows of `forecasts`/`aggregations` is zero).
-
-The type signature of the function is
-
-	score: ([0,1]ⁿ × {0,1}ⁿ × Optional(arguments) -> float) × Optional(arguments)
-
-To elaborate a bit further:
-
-* First argument (`scoring_rule`): The scoring rule for forecasts.
-	* Receives:
-		* First argument: A numpy array containing the probabilities (in (0,1)
-		* Second argument: A numpy array containing the outcomes (in {0,1})
-		* Optional arguments passed on by `score`
-	* Returns: This function should return a floating point number
-* Optional arguments which are passed to the scoring rule:
-	* `*args` are the variable arguments, and
-	* `**kwargs` are the variable keyword arguments
-
-##### Returns
-
-The results are written onto the field `scores`.
-
-##### Example
-
-We aggregate by calculating the arithmetic mean of all forecasts made
-on a question & option, and score with the Brier score:
-
-	def arith_aggr(forecasts):
-		return np.array([np.mean(forecasts['probability'])])
-
-	def brier_score(probabilities, outcomes):
-		return np.mean((probabilities-outcomes)**2)
-
-<!--**-->
-
-Using these in the repl:
-
-	>>> aggregations=aggregate(arith_aggr)
-	>>> m.score(brier_score)
-	>>> m.scores
-	question_id
-	1017.0       0.147917
-	1038.0       0.177000
-	...               ...
-	5005.0       0.140392
-	6413.0       0.109608
-
-	[410 rows x 1 columns]
-
-We can now calculate the average Brier score on all questions:
-
-	>>> m.scores.describe()
-	            score
-	count  410.000000
-	mean     0.179346
-	std      0.147413
-	min      0.006786
-	25%      0.069669
-	50%      0.141251
-	75%      0.248579
-	max      0.841011
-
-#### `add_cumul_user_score(scoring_rule, *args, **kwargs)`
-
-Change `forecasts` so that it has contains a new field `cumul_score`. The
-field contains the past performance of the user making that forecast,
-before the time of prediction.
-
-##### Arguments
-
-`add_cumul_user_score` reads the forecasts from the field `forecasts`,
-and writes them back to `forecasts`.
-
-Throws an exception if there are no forecasts loadedcomputed (i.e. the
-number of rows of `forecasts` is zero).
-
-The type signature of the function is
-
-	cumul_user_score: ([0,1]ⁿ × {0,1}ⁿ × Optional(arguments) -> float) × Optional(arguments)
-
-* First argument (`scoring_rule`): the scoring rule by which the performance will be judged
-	* Receives:
-		* First argument: A numpy array containing the probabilities (in (0,1)
-		* Second argument: A numpy array containing the outcomes (in {0,1})
-		* Optional arguments passed on by `cumul_user_score`
-	* Returns: This function should return a floating point number
-* Optional additional arguments that will be passed on to the scoring rule
-
-##### Returns
-
-A new DataFrame that is a copy of `forecasts` is written to the field
-`forecasts`, with the additional column `cumul_score`: The score of the
-user making the forecast for all questions that have resolved before
-the current prediction (that is, before `timestamp`), as judged by
-`scoring_rule`.
-
-#### `add_cumul_user_perc(lower_better=True)`
-
-Based on cumulative past scores, add the percentile of forecaster
-performance the forecaster finds themselves in at the time of forecasting.
-
-##### Arguments
-
-`add_cumul_user_perc` reads from the field `forecasts`, and writes
-to it. It throws an exception if the function `add_cumul_user_score`
-hasn't been called on the data before.
-
-The function takes one named argument `lower_better` that, if `True`,
-assumes that lower values in `cumul_score` indicate better performance,
-and if `False`, assumes that higher values in the same field are better.
-
-##### Returns
-
-It writes the result back to the field `forecasts` in the same object.
-
-##### Notes
-
-The function is currently *very* slow (several hours for a dataset of
-500k forecasts on my laptop).
-
-#### `frontfill()`
-
-__Warning__: This function makes the dataset given to it ~100 times
-bigger, which might lead to running of out RAM.
-
-Return a set of forecasts so that forecasts by individual forecasters are
-repeated daily until they make a new forecast or the question is closed.
-
-This function returns a new DataFrame and doesn't change the DataFrame
-given as an argument.
-
-##### Arguments
-
-`frontfill` reads from the field `forecasts`, and writes
-to it. It throws an exception if the no forecasts have been loaded.
-
-##### Example
-
-	$ python3
-	>>> import gjp
-	>>> s=gjp.Surveys()
-	>>> survey_files=['./data/gjp/survey_fcasts_mini.yr1.csv']
-	>>> s.load(survey_files)
-	>>> len(s.forecasts)
-	9999
-	>>> s.frontfill()
-	>>> len(s.forecasts)
-	1095631
-
-#### `give_frontfilled(forecasts)`
-
-A "static" method that takes a set of forecasts as a DataFrame and
-returns the frontfilled DataFrame. Does not change any fields of the
-object it belongs to.
-
-##### Arguments
-
-* `forecasts`, a pandas DataFrame, necessary columns are `question_id`, `user_id`, `answer_option`, `timestamp`, `date_closed`
-
-##### Returns
-
-##### Example
-
-#### `generic_aggregate(g, summ='arith', format='probs', decay='nodec', extremize='noextr', extrfactor=3, fill=False, expertise=False)`
-
-##### Arguments
-
-##### Returns
-
-##### Example
-
-#### `normalise`
-
-Changes the field `aggregations` so that probabilities assigned to
-different options on the same question sum to 1.
-
-##### Arguments
-
-None.
-
-##### Returns
-
-Nothing, instead mutates the field `aggregations`.
 
 ForecastSetBase
 -------------------
