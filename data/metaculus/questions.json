@@ -798,9 +798,7 @@
     "resolve_time": "2021-01-23T21:53:00Z",
     "outcome": -1,
     "question_title": "Trump to get told \"You're Fired!\" ?"
-  }
-]
-[
+  },
   {
     "question_id": 202,
     "open_time": "2016-04-01T00:00:00Z",
@@ -1600,9 +1598,7 @@
     "resolve_time": "2017-01-09T20:02:30.340000Z",
     "outcome": 0,
     "question_title": "Will the German Government bail out Deutsche Bank?"
-  }
-]
-[
+  },
   {
     "question_id": 344,
     "open_time": "2016-10-06T17:55:24Z",
@@ -2402,9 +2398,7 @@
     "resolve_time": "2030-01-01T00:00:00Z",
     "outcome": null,
     "question_title": "When will Blue Origin's \"New Glenn\" rocket complete its first successful test flight?"
-  }
-]
-[
+  },
   {
     "question_id": 473,
     "open_time": "2017-06-09T12:00:00Z",
@@ -3204,9 +3198,7 @@
     "resolve_time": "2019-01-02T04:30:00Z",
     "outcome": 1,
     "question_title": "Will public domain day happen in the U.S. in 2019?"
-  }
-]
-[
+  },
   {
     "question_id": 585,
     "open_time": "2017-11-21T08:00:00Z",
@@ -4006,9 +3998,7 @@
     "resolve_time": "2018-12-31T23:35:00Z",
     "outcome": 1,
     "question_title": "Is Westworld located on an island?"
-  }
-]
-[
+  },
   {
     "question_id": 826,
     "open_time": "2018-04-21T07:00:00Z",
@@ -4808,9 +4798,7 @@
     "resolve_time": "2019-05-21T10:03:00Z",
     "outcome": 1,
     "question_title": "Will Daenerys Targaryen die in season eight of Game of Thrones?"
-  }
-]
-[
+  },
   {
     "question_id": 1314,
     "open_time": "2018-07-30T07:00:00Z",
@@ -5610,9 +5598,7 @@
     "resolve_time": "2030-01-01T05:00:00Z",
     "outcome": null,
     "question_title": "How many NASA \"space launch system\" (SLS) launches before 2030?"
-  }
-]
-[
+  },
   {
     "question_id": 1505,
     "open_time": "2018-10-16T07:00:00Z",
@@ -6412,9 +6398,7 @@
     "resolve_time": "2049-06-23T21:59:00Z",
     "outcome": null,
     "question_title": "When will the average survival rate of all cancers exceed 75%?"
-  }
-]
-[
+  },
   {
     "question_id": 1655,
     "open_time": "2018-12-17T23:00:00Z",
@@ -7214,9 +7198,7 @@
     "resolve_time": "2030-01-01T00:00:00Z",
     "outcome": null,
     "question_title": "What will be the highest level of annual GDP growth in the US before 2030?"
-  }
-]
-[
+  },
   {
     "question_id": 2623,
     "open_time": "2019-02-20T00:00:00Z",
@@ -8016,9 +7998,7 @@
     "resolve_time": "2022-01-01T10:26:00Z",
     "outcome": 0,
     "question_title": "Will the US FDA grant Neuralink permission to implant a brain-machine interface device in a human before 1 January 2022?"
-  }
-]
-[
+  },
   {
     "question_id": 2954,
     "open_time": "2019-07-26T22:00:00Z",
@@ -8818,9 +8798,7 @@
     "resolve_time": "9999-01-01T00:00:00Z",
     "outcome": null,
     "question_title": "Forecasting the Future of Alt-Meat: A Metaculus Prediction Party"
-  }
-]
-[
+  },
   {
     "question_id": 3158,
     "open_time": "2019-10-19T23:00:00Z",
@@ -9620,9 +9598,7 @@
     "resolve_time": "2030-01-01T00:00:00Z",
     "outcome": null,
     "question_title": "Will any OECD country achieve a 10% or greater reduction in the national rate of obesity for 3 consecutive years before 2030?"
-  }
-]
-[
+  },
   {
     "question_id": 3398,
     "open_time": "2019-12-11T23:00:00Z",
@@ -10422,9 +10398,7 @@
     "resolve_time": "2023-01-01T00:00:00Z",
     "outcome": null,
     "question_title": "What will the average growth rate be, of total renewable energy produced worldwide, over the 2020 to 2022 period (inclusive)?"
-  }
-]
-[
+  },
   {
     "question_id": 3588,
     "open_time": "2020-02-09T23:00:00Z",
@@ -11224,9 +11198,7 @@
     "resolve_time": "2020-03-22T15:58:00Z",
     "outcome": -1,
     "question_title": "Will the FDA authorise the use of remdesivir to treat COVID-19 by the end of 2020?"
-  }
-]
-[
+  },
   {
     "question_id": 3748,
     "open_time": "2020-03-01T00:00:00Z",
@@ -12026,9 +11998,7 @@
     "resolve_time": "2020-12-31T23:00:00Z",
     "outcome": null,
     "question_title": "Pandemic Metaculus and our new moderators"
-  }
-]
-[
+  },
   {
     "question_id": 3999,
     "open_time": "2020-04-17T21:00:00Z",
@@ -12828,9 +12798,7 @@
     "resolve_time": "2020-07-08T07:00:00Z",
     "outcome": 1,
     "question_title": "Will EA Global London 2020 be cancelled or rescheduled due to COVID-19?"
-  }
-]
-[
+  },
   {
     "question_id": 4319,
     "open_time": "2020-06-05T22:00:00Z",
@@ -13630,9 +13598,7 @@
     "resolve_time": "2020-12-31T11:32:00Z",
     "outcome": 0.6143,
     "question_title": "What will voter turnout be for the US 2020 presidential election?"
-  }
-]
-[
+  },
   {
     "question_id": 4657,
     "open_time": "2020-06-19T07:00:00Z",
@@ -14432,9 +14398,7 @@
     "resolve_time": "2030-01-01T08:00:00Z",
     "outcome": null,
     "question_title": "When will virtual reality headset sales exceed 10 million units per year?"
-  }
-]
-[
+  },
   {
     "question_id": 4846,
     "open_time": "2020-07-21T22:00:00Z",
@@ -15234,9 +15198,7 @@
     "resolve_time": "2020-10-16T20:09:00Z",
     "outcome": 0.74628,
     "question_title": "Total Retail Sales in September 2020"
-  }
-]
-[
+  },
   {
     "question_id": 5015,
     "open_time": "2020-08-16T07:00:00Z",
@@ -16036,9 +15998,7 @@
     "resolve_time": "2030-01-01T10:00:00Z",
     "outcome": null,
     "question_title": "Will Planet Nine be discovered before 2030?"
-  }
-]
-[
+  },
   {
     "question_id": 5316,
     "open_time": "2020-10-02T22:00:00Z",
@@ -16838,9 +16798,7 @@
     "resolve_time": "2022-12-31T22:00:00Z",
     "outcome": null,
     "question_title": "What will the highest Exact Match rate of the best-performing model on SQuAD2.0 be, at the end of 2022?"
-  }
-]
-[
+  },
   {
     "question_id": 5559,
     "open_time": "2020-11-07T08:00:00Z",
@@ -17640,9 +17598,7 @@
     "resolve_time": "2022-02-25T17:18:00Z",
     "outcome": 0.5113870513453407,
     "question_title": "How many billions of dollars of student loans will the US federal government forgive in 2021?"
-  }
-]
-[
+  },
   {
     "question_id": 5811,
     "open_time": "2020-12-06T07:00:00Z",
@@ -18442,9 +18398,7 @@
     "resolve_time": "2021-11-22T19:57:00Z",
     "outcome": 0.364546159813809,
     "question_title": "What will the value of the herein defined Object Detection Performance Index be on 2021-06-14?"
-  }
-]
-[
+  },
   {
     "question_id": 5968,
     "open_time": "2020-12-16T23:00:00Z",
@@ -19244,9 +19198,7 @@
     "resolve_time": "2021-02-06T14:46:00Z",
     "outcome": 0.552325,
     "question_title": "What will be the total number of new incident deaths due to COVID-19 in the US for the week beginning on 2021-01-24 and ending on 2021-01-30 (inclusive)?"
-  }
-]
-[
+  },
   {
     "question_id": 6162,
     "open_time": "2021-01-06T19:00:00Z",
@@ -20046,9 +19998,7 @@
     "resolve_time": "2099-12-31T21:00:00Z",
     "outcome": null,
     "question_title": "Will the Riemann Hypothesis be proved true, if it is proved by 2100?"
-  }
-]
-[
+  },
   {
     "question_id": 6367,
     "open_time": "2021-01-31T07:00:00Z",
@@ -20848,9 +20798,7 @@
     "resolve_time": "2023-02-13T23:00:00Z",
     "outcome": null,
     "question_title": "What will the the performance be of the top-performing supercomputer (in exaFLOPS) in the TOP500 be according to their November 2022 list?"
-  }
-]
-[
+  },
   {
     "question_id": 6517,
     "open_time": "2021-02-14T23:00:00Z",
@@ -21650,9 +21598,7 @@
     "resolve_time": "2022-03-17T16:09:00Z",
     "outcome": 3,
     "question_title": "When will the US-EU border reopen?"
-  }
-]
-[
+  },
   {
     "question_id": 6666,
     "open_time": "2021-02-28T23:00:00Z",
@@ -22452,9 +22398,7 @@
     "resolve_time": "2022-02-04T15:44:00Z",
     "outcome": 0,
     "question_title": "Will most of the Quad/Five Eyes countries boycott the 2022 Winter Olympics?"
-  }
-]
-[
+  },
   {
     "question_id": 6903,
     "open_time": "2021-08-17T22:00:00Z",
@@ -23254,9 +23198,7 @@
     "resolve_time": "2023-01-01T04:59:00Z",
     "outcome": null,
     "question_title": "When will Apple announce the first computer that uses the second generation of their M-series processor (likely to be named the M2)?"
-  }
-]
-[
+  },
   {
     "question_id": 7079,
     "open_time": "2021-04-23T07:00:00Z",
@@ -24056,9 +23998,7 @@
     "resolve_time": "2022-12-31T21:00:00Z",
     "outcome": null,
     "question_title": "Will FTX default on an obligation to hand over their users’ assets on request by the end of 2022?"
-  }
-]
-[
+  },
   {
     "question_id": 7231,
     "open_time": "2021-05-27T04:00:00Z",
@@ -24858,9 +24798,7 @@
     "resolve_time": "2021-11-08T22:00:00Z",
     "outcome": 1,
     "question_title": "Will Biden pass an infrastructure package in 2021?"
-  }
-]
-[
+  },
   {
     "question_id": 7389,
     "open_time": "2021-07-10T22:00:00Z",
@@ -25660,9 +25598,7 @@
     "resolve_time": "2025-12-31T23:00:00Z",
     "outcome": null,
     "question_title": "What percentage of young US women will be sexless in 2024?"
-  }
-]
-[
+  },
   {
     "question_id": 7571,
     "open_time": "2021-07-29T07:00:00Z",
@@ -26462,9 +26398,7 @@
     "resolve_time": "2021-09-01T16:00:00Z",
     "outcome": 0.7490000000000001,
     "question_title": "What will be percentage of population will indicate they are \"vaccine accepting\" in Virginia on 28 August?"
-  }
-]
-[
+  },
   {
     "question_id": 7751,
     "open_time": "2021-08-18T12:00:00Z",
@@ -27264,9 +27198,7 @@
     "resolve_time": "2022-01-10T23:27:00Z",
     "outcome": 0.212,
     "question_title": "How many billions of dollars will wildfires in the US in 2021 cost?"
-  }
-]
-[
+  },
   {
     "question_id": 7897,
     "open_time": "2021-09-09T07:00:00Z",
@@ -28066,9 +27998,7 @@
     "resolve_time": "2200-01-01T11:00:00Z",
     "outcome": null,
     "question_title": "If we find life on an icy moon of the gas giants by 2200, will we also find evidence of macrofauna?"
-  }
-]
-[
+  },
   {
     "question_id": 8088,
     "open_time": "2022-01-12T05:00:00Z",
@@ -28868,9 +28798,7 @@
     "resolve_time": "2050-02-01T06:00:00Z",
     "outcome": null,
     "question_title": "A public prediction by Matthew Yglesias"
-  }
-]
-[
+  },
   {
     "question_id": 8267,
     "open_time": "2020-12-28T00:00:00Z",
@@ -29670,9 +29598,7 @@
     "resolve_time": "2050-01-01T17:00:00Z",
     "outcome": null,
     "question_title": "Will the price of water on the NQH20 hit $2,500 (2021 USD) per acre-foot by 2050?"
-  }
-]
-[
+  },
   {
     "question_id": 8475,
     "open_time": "2021-11-04T04:00:00Z",
@@ -30472,9 +30398,7 @@
     "resolve_time": "2049-12-31T23:00:00Z",
     "outcome": null,
     "question_title": "If an offensive state nuclear detonation occurs by 2050, will the first detonation be inadvertent?"
-  }
-]
-[
+  },
   {
     "question_id": 8645,
     "open_time": "2021-11-18T15:00:00Z",
@@ -31274,9 +31198,7 @@
     "resolve_time": "2022-01-01T21:30:00Z",
     "outcome": 3,
     "question_title": "What will be the 7-day moving average of daily new reported cases in Virginia on the 31st of December, 2021?"
-  }
-]
-[
+  },
   {
     "question_id": 8795,
     "open_time": "2021-12-03T17:00:00Z",
@@ -32076,9 +31998,7 @@
     "resolve_time": "2029-12-31T23:00:00Z",
     "outcome": null,
     "question_title": "When will a single reusable rocket stage be used for the 25th time?"
-  }
-]
-[
+  },
   {
     "question_id": 8965,
     "open_time": "2022-01-26T06:00:00Z",
@@ -32878,9 +32798,7 @@
     "resolve_time": "2050-02-01T06:00:00Z",
     "outcome": null,
     "question_title": "A public prediction by Kelsey Piper"
-  }
-]
-[
+  },
   {
     "question_id": 9107,
     "open_time": "2022-01-04T06:00:00Z",
@@ -33680,9 +33598,7 @@
     "resolve_time": "2050-02-01T06:00:00Z",
     "outcome": null,
     "question_title": "A public prediction by Scott Alexander"
-  }
-]
-[
+  },
   {
     "question_id": 9353,
     "open_time": "2022-01-15T06:00:00Z",
@@ -34482,9 +34398,7 @@
     "resolve_time": "2023-01-01T12:00:00Z",
     "outcome": null,
     "question_title": "Before January 1, 2023, will Russia invade or annex all or part of Belarus?"
-  }
-]
-[
+  },
   {
     "question_id": 9523,
     "open_time": "2022-01-26T05:00:00Z",
@@ -35284,9 +35198,7 @@
     "resolve_time": "2022-05-18T09:00:00Z",
     "outcome": null,
     "question_title": "Will Carrick Flynn win the Democratic primary for Oregon's 6th congressional district?"
-  }
-]
-[
+  },
   {
     "question_id": 9701,
     "open_time": "2022-02-11T05:00:00Z",
@@ -36086,9 +35998,7 @@
     "resolve_time": "2023-03-01T17:00:00Z",
     "outcome": null,
     "question_title": "Will more than 25,000 people be killed in the Russo-Ukrainian War in 2022?"
-  }
-]
-[
+  },
   {
     "question_id": 9936,
     "open_time": "2022-02-25T00:00:00Z",
@@ -36888,9 +36798,7 @@
     "resolve_time": "2022-04-30T23:59:00Z",
     "outcome": null,
     "question_title": "Flu Hospitalizations for OK (Apr 16)"
-  }
-]
-[
+  },
   {
     "question_id": 10074,
     "open_time": "2022-03-14T23:59:00Z",
@@ -37690,9 +37598,7 @@
     "resolve_time": "2022-12-31T23:00:00Z",
     "outcome": null,
     "question_title": "Will any NATO country invoke Article 5 by December 31, 2022?"
-  }
-]
-[
+  },
   {
     "question_id": 10269,
     "open_time": "2022-03-14T17:00:00Z",
@@ -38492,9 +38398,7 @@
     "resolve_time": "2050-02-01T06:00:00Z",
     "outcome": null,
     "question_title": "A public prediction by Recep Tayyip Erdoğan"
-  }
-]
-[
+  },
   {
     "question_id": 10422,
     "open_time": "2022-03-23T17:10:07.752000Z",
@@ -39294,9 +39198,7 @@
     "resolve_time": "2051-01-31T23:00:00Z",
     "outcome": null,
     "question_title": "The next five years"
-  }
-]
-[
+  },
   {
     "question_id": 10659,
     "open_time": "2022-04-17T04:00:00Z",

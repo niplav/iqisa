@@ -1,2 +1,7 @@
 #!/usr/bin/env bash
-jq <public_metaculus.json '[.results|.[]|{"question_id": .id, "open_time": .publish_time, "close_time": .close_time, "resolve_time": .resolve_time, "outcome": .resolution, "question_title": .title}]' >metaculus_questions.json
+jq <public_metaculus.json '[.results|.[]|{"question_id": .id, "open_time": .publish_time, "close_time": .close_time, "resolve_time": .resolve_time, "outcome": .resolution, "question_title": .title}]' |
+sed '/^[][]$/d' | #so what? sue me
+sed 's/\}$/\},/' | #or tell me a better method
+sed '$s/\},$/\}/' |
+sed '1i[
+$a]' | jq >questions.json
