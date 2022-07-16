@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+jq <public_metaculus.json '[.results|.[]|{"question_id": .id, "open_time": .publish_time, "close_time": .close_time, "resolve_time": .resolve_time, "outcome": .resolution, "question_title": .title}]' >metaculus_questions.json

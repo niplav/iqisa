@@ -34,3 +34,24 @@ No subtly dropping data in market loading? (of voided questions, that is)
 Forum post
 	Qualitative user studies
 	Reciprocal code review
+
+Perhaps incorporate from all Metaforecast platforms?
+	betfair.ts
+	givewellopenphil.ts
+	index.ts
+	metaculus
+	rootclaim.ts
+	goodjudgmentopen.ts
+	infer.ts
+	polymarket.ts
+	smarkets.ts
+	fantasyscotus.ts
+	goodjudgment.ts
+	kalshi.ts
+	predictit.ts
+	wildeford.ts
+	foretold.ts
+	guesstimate.ts
+	manifold.ts
+	registry.ts
+	xrisk.ts
