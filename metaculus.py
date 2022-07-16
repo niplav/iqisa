@@ -1,6 +1,7 @@
 import json
 import time
 
+import datetime as dt
 import numpy as np
 import pandas as pd
 
@@ -64,13 +65,38 @@ class PrivateBinary(iqisa.ForecastSetHandler):
 		resolve_times=[]
 		outcomes=[]
 		question_titles=[]
+		question_statuses=[]
 
 		for question in jsondata:
 			question_ids.append(int(question['question_id']))
 			open_times.append(pd.to_datetime(question['open_time']))
-			close_times.append(pd.to_datetime(question['close_time']))
-			resolve_times.append(pd.to_datetime(question['resolve_time']))
-			outcomes.append(question['outcome'])
+			# without the coerce this would sometimes fail
+			# because for Metaculus data some resolution times
+			# are outside the 64-bit nanosecond representable
+			# timescale
+			# TODO: Fix by switching to python datetime
+			# instead of pandas datetime
+			close_time=pd.to_datetime(question['close_time'], errors='coerce')
+			close_times.append(close_time)
+			resolve_times.append(pd.to_datetime(question['resolve_time'], errors='coerce'))
+			if question['outcome']==None or question['outcome']==-1:
+				outcomes.append(np.nan)
+			else:
+				outcomes.append(str(question['outcome']))
 			question_titles.append(question['question_title'])
 
-		self.questions=pd.DataFrame({'question_id': question_ids, 'q_text': question_titles, 'open_time': open_times, 'close_time': close_times, 'resolve_time': resolve_times, 'outcome': outcomes})
+			if question['outcome']==None:
+				# I don't see the data giving any better indication of
+				# whether the question has closed
+				# TODO: think about this with a Yoda timer?
+				now=pd.to_datetime(dt.datetime.utcnow(), utc=True)
+				if now>close_time:
+					question_statuses.append('closed')
+				else:
+					question_statuses.append('open')
+			elif question['outcome']==-1:
+				question_statuses.append('voided')
+			else:
+				question_statuses.append('resolved')
+
+		self.questions=pd.DataFrame({'question_id': question_ids, 'q_title': question_titles, 'open_time': open_times, 'close_time': close_times, 'resolve_time': resolve_times, 'outcome': outcomes, 'q_status': question_statuses})

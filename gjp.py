@@ -36,7 +36,7 @@ class ForecastSetBase(iqisa.ForecastSetHandler):
 		for f in date_fields:
 			questions[f]=pd.to_datetime(questions[f], dayfirst=True)
 
-		questions=questions.rename(columns={'ifp_id': 'question_id', 'date_start': 'open_time', 'date_suspend': 'close_time', 'date_to_close': 'resolve_time', 'date_closed': 'close_date'}, errors="raise")
+		questions=questions.rename(columns={'ifp_id': 'question_id', 'date_start': 'open_time', 'date_suspend': 'close_time', 'date_to_close': 'resolve_time', 'date_closed': 'close_date', 'q_text': 'q_title'}, errors="raise")
 		questions.loc[:,'question_id']=questions['question_id'].map(self.simplify_id)
 		questions['question_id']=pd.to_numeric(questions['question_id'], downcast='float')
 
@@ -240,9 +240,9 @@ class Markets(ForecastSetBase):
 			#have the correct type already, so sometimes we have to
 			#generate it from other data.
 			if 'id_by_name' in self.fixes[f]['fixes']:
-				q_texts=questions[['question_id','q_text']]
-				market=pd.merge(market, q_texts, left_on='market_name', right_on='q_text', how='inner')
-				market.pop('q_text')
+				q_titles=questions[['question_id','q_title']]
+				market=pd.merge(market, q_titles, left_on='market_name', right_on='q_title', how='inner')
+				market.pop('q_title')
 			if 'id_in_name' in self.fixes[f]['fixes']:
 				market['question_id']=market['market_name'].map(self.extract_id)
 

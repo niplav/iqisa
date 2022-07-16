@@ -470,7 +470,7 @@ Its columns are
 <!--TODO: describe further-->
 
 * `question_id`, `date_start`, `date_suspend`, `date_to_close`, `date_closed`, `outcome`, `q_type`, `q_status`, `days_open`, `n_opts`, `options`: As in the [description of `forecasts` above](#forecasts)
-* `q_text`: The title of the question, as a `str`.
+* `q_title`: The title of the question, as a `str`.
 * `q_desc`: The description of the question, including resolution criteria, type `str`.
 * `short_title`: The shortened title of the question, type `str`.
 
@@ -509,7 +509,7 @@ The GJOpen forecast data has some peculiarities, which are described here:
 * `team_id`: The team "DEFAULT" is given the ID 0.
 * `answer_option`: One of 'a', 'b', 'c', 'd' or 'e' (or rarely `np.nan` for market data).
 * `outcome`: One of 'a', 'b', 'c', 'd', or 'e' (or rarely `np.nan`, in the case of voided questions).
-* `q_status`: One of 'closed', 'voided' or 'active'.
+* `q_status`: One of 'closed', 'voided' or 'open'.
 * `q_type`: Integer between 0 and 6 (inclusive).
 	* 0: regular binomial or multinomial question
 	* 1-5: conditional question, index designated by the specific type (`q_type` 2: 2nd conditional question)
@@ -602,6 +602,6 @@ data from surveys:
 * `expertise`
 * `viewtime`
 * `year`
-* `q_text`
+* `q_title`
 * `q_desc`
 * `short_title`

@@ -13,8 +13,7 @@ Finish documentation
 Data in general
 	Unify fields, think about better names for fields
 	Date fields:
-		Boil down to date_start (rename to date_open?), date_close, date_resolve
-		Every other date field goes into the load_complete stuff
+		Change to python datetime.datetime (to represent far future!)
 	Field order:
 	{general} question_id, user_id, probability, answer_option, timestamp,
 	{question} outcome, date_start, date_suspend, date_to_close, date_closed, n_opts, options, q_status, q_type
@@ -55,3 +54,7 @@ Perhaps incorporate from all Metaforecast platforms?
 	manifold.ts
 	registry.ts
 	xrisk.ts
+
+There's a clash between metaculus & gjopen data:
+	* gjopen doesn't have a conception of a question being closed, it's either resolved or not.
+		* Recitfy this in the fields q_status, close_time and resolve_time!
