@@ -36,9 +36,10 @@ class ForecastSetBase(iqisa.ForecastSetHandler):
 		for f in date_fields:
 			questions[f]=pd.to_datetime(questions[f], dayfirst=True)
 
-		questions=questions.rename(columns={'ifp_id': 'question_id', 'date_start': 'open_time', 'date_suspend': 'close_time', 'date_to_close': 'resolve_time', 'date_closed': 'close_date', 'q_text': 'q_title'}, errors="raise")
+		questions=questions.rename(columns={'ifp_id': 'question_id', 'date_start': 'open_time', 'date_suspend': 'close_time', 'date_to_close': 'resolve_time', 'date_closed': 'close_time', 'q_text': 'q_title'}, errors="raise")
 		questions.loc[:,'question_id']=questions['question_id'].map(self.simplify_id)
 		questions['question_id']=pd.to_numeric(questions['question_id'], downcast='float')
+		questions['days_open']=pd.to_timedelta(questions['days_open'], unit='D')
 
 		self.questions=questions
 

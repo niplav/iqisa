@@ -6,7 +6,7 @@ count=0
 for p in $(seq 0 100 100000); do
 	echo "Page offset ${p}"
 	curl --silent --show-error --fail 'https://www.metaculus.com/api2/questions/?limit=100&offset='$p >> metaculus_public.json
-	if grep -Eo '"next":null' <tmp-data-questions.json; then break; fi
+	if grep -Eo '"next":null' <metaculus_public.json; then break; fi
 	echo >> metaculus_public.json
 	count=$((count + 1))
 	sleep 10

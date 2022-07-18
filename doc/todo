@@ -58,3 +58,4 @@ Perhaps incorporate from all Metaforecast platforms?
 There's a clash between metaculus & gjopen data:
 	* gjopen doesn't have a conception of a question being closed, it's either resolved or not.
 		* Recitfy this in the fields q_status, close_time and resolve_time!
+Change team id 0 to NaN in GJP data.

@@ -41,7 +41,7 @@ class PrivateBinary(iqisa.ForecastSetHandler):
 				open_times+=[open_time]*numf
 				resolve_times+=[resolve_time]*numf
 				outcomes+=[resolution]*numf
-				question_titles+=[resolution]*numf
+				question_titles+=[question_title]*numf
 		numf=len(probabilities)
 		answer_options=['1']*numf
 		outcomes=['1']*numf
@@ -51,7 +51,13 @@ class PrivateBinary(iqisa.ForecastSetHandler):
 		q_status=['resolved']*numf
 		q_type=[0]*numf
 
-		self.forecasts=pd.DataFrame({'user_id': user_ids, 'team_id': team_ids, 'probability': probabilities, 'answer_option': answer_options, 'timestamp': timestamps, 'outcome': outcomes, 'open_time': open_times, 'resolve_time': resolve_times, 'n_opts': n_opts, 'options': options, 'q_status': q_status, 'q_type': q_type})
+		self.forecasts=pd.DataFrame({'user_id': user_ids, 'team_id': team_ids, 'probability': probabilities, 'answer_option': answer_options, 'timestamp': timestamps, 'outcome': outcomes, 'open_time': open_times, 'resolve_time': resolve_times, 'n_opts': n_opts, 'options': options, 'q_status': q_status, 'q_type': q_type, 'q_title': question_titles})
+
+		if len(self.questions)==0:
+			self.load_questions()
+		self.forecasts=pd.merge(self.forecasts, self.questions, on=['q_title'], suffixes=('', '_y'))
+		self.forecasts=self.forecasts.drop(columns=['open_time_y', 'resolve_time_y', 'outcome_y', 'q_status_y'])
+		self.forecasts.reindex(columns=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'open_time', 'close_time', 'resolve_time', 'days_open', 'n_opts', 'options', 'q_status', 'q_type'])
 
 	def load_questions(self, data_file=None):
 		if data_file==None:
@@ -99,4 +105,10 @@ class PrivateBinary(iqisa.ForecastSetHandler):
 			else:
 				question_statuses.append('resolved')
 
-		self.questions=pd.DataFrame({'question_id': question_ids, 'q_title': question_titles, 'open_time': open_times, 'close_time': close_times, 'resolve_time': resolve_times, 'outcome': outcomes, 'q_status': question_statuses})
+		numq=len(question_ids)
+		n_opts=[2]*numq
+		q_type=[0]*numq
+		options=['(0) No, (1) Yes']*numq
+		days_open=np.array(close_times)-np.array(open_times)
+
+		self.questions=pd.DataFrame({'question_id': question_ids, 'q_title': question_titles, 'q_status': question_statuses, 'open_time': open_times, 'close_time': close_times, 'resolve_time': resolve_times, 'outcome': outcomes, 'days_open': days_open, 'n_opts': n_opts, 'options': options})
