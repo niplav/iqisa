@@ -37,7 +37,7 @@ def load_complete_private_binary(data_file):
 			for forecast in question['prediction_timeseries']:
 				user_ids.append(int(forecast['user_id']))
 				probabilities.append(float(forecast['prediction']))
-				timestamps.append(pd.to_datetime(forecast['timestamp']))
+				timestamps.append(pd.to_datetime(forecast['timestamp'], unit='s'))
 				numf+=1
 			open_times+=[open_time]*numf
 			resolve_times+=[resolve_time]*numf

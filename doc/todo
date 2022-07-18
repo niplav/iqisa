@@ -1,7 +1,6 @@
 General
 	add_cumul_user_perc is super slow, any chance to make it faster?
 	Write an aggregation rule that takes into account previous performance by forecasters
-	Better Brier score
 
 Make fields for prediction market data and survey data consistent
 	What about prices before & after trades?
@@ -58,4 +57,19 @@ Perhaps incorporate from all Metaforecast platforms?
 There's a clash between metaculus & gjopen data:
 	* gjopen doesn't have a conception of a question being closed, it's either resolved or not.
 		* Recitfy this in the fields q_status, close_time and resolve_time!
-Change team id 0 to NaN in GJP data.
+
+Incorrect fields:
+	markets:
+		user_id should be float64
+		team_id should be float64
+	surveys:
+		question_id should be float64
+	metaculus private binary:
+		question_id should be float64
+		user_id should be float64
+		team_id should be float64
+	For GJP, make all "closed" q_statuses "resolved", and set "close_time" to NaT
+	Change team id 0 to NaN in GJP data.
+	Make all times datetime.datetime instead of datetime64[ns] (bc of overflow)
+	Think about:
+		is answer_option as string really that good?

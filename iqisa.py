@@ -12,6 +12,7 @@ comparable_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_op
 def aggregate(forecasts, aggregation_function, on=['question_id', 'answer_option'], *args, **kwargs):
 	"""forecasts should be a pandas.DataFrame that contains columns
 	question_id, user_id, timestamp, probability, answer_option, outcome, date_closed"""
+	# TODO: throw an error if on isn't a subset of columns of forecasts
 	aggregations=forecasts.groupby(on).apply(apply_aggregation, aggregation_function, *args, **kwargs)
 	aggregations.index=aggregations.index.droplevel(['question_id', 'answer_option'])
 	return aggregations
@@ -21,12 +22,7 @@ def apply_aggregation(group, aggregation_function, *args, **kwargs):
 	return pd.DataFrame({'question_id': np.array(group['question_id'])[0], 'probability': transformed_probs, 'outcome': np.array(group['outcome'])[0], 'answer_option': np.array(group['answer_option'])[0]})
 
 def score(forecasts, scoring_rule, on=['question_id'], *args, **kwargs):
-	return score_forecasts(forecasts, scoring_rule, on, *args, **kwargs)
-
-def score_aggregations(aggregations, scoring_rule, on=['question_id'], *args, **kwargs):
-	return score_forecasts(aggregations, scoring_rule, on, *args, **kwargs)
-
-def score_forecasts(forecasts, scoring_rule, on=['question_id'], *args, **kwargs):
+	# TODO: throw an error if on isn't a subset of columns of forecasts
 	scores=forecasts.groupby(on).apply(apply_score, scoring_rule, *args, **kwargs)
 	scores.index=scores.index.droplevel(1)
 	return scores
@@ -112,7 +108,7 @@ def frontfill(forecasts):
 
 def frontfill_group(group):
 	"""warning: this makes the forecast ids useless"""
-	dates=pd.date_range(start=min(group['timestamp']), end=max(group['date_closed']), freq='D', normalize=True)
+	dates=pd.date_range(start=min(group['timestamp']), end=max(group['close_time']), freq='D', normalize=True)
 	alldates=pd.DataFrame({'date': dates})
 	group['date']=group['timestamp'].apply(lambda x: x.round(freq='D'))
 	group=group.merge(alldates, on='date', how='outer')
