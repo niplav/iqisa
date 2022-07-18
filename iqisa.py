@@ -7,6 +7,8 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
+comparable_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'open_time', 'close_time', 'resolve_time', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
+
 def aggregate(forecasts, aggregation_function, on=['question_id', 'answer_option'], *args, **kwargs):
 	"""forecasts should be a pandas.DataFrame that contains columns
 	question_id, user_id, timestamp, probability, answer_option, outcome, date_closed"""
@@ -178,16 +180,3 @@ def generic_aggregate(group, summ='arith', format='probs', decay='nodec', extrem
 		aggrval=p**d
 
 		return np.array([aggrval])
-
-class ForecastSetHandler():
-	comparable_index=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'open_time', 'close_time', 'resolve_time', 'days_open', 'n_opts', 'options', 'q_status', 'q_type']
-
-	def __init__(self, probmargin=0.005, forecasts=None):
-		self.probmargin=probmargin
-		self.with_cumul_scores=False
-		self.time_frontfilled=False
-		self.questions=pd.DataFrame()
-		if forecasts==None:
-			self.forecasts=pd.DataFrame()
-		else:
-			self.forecasts=forecasts

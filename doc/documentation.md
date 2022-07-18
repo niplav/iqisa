@@ -18,37 +18,35 @@ Project prediction markets:
 	$ python3
 	>>> import gjp
 	>>> import iqisa as iqs
-	>>> m=gjp.Markets()
-	>>> m.load()
+	>>> market_fcasts=gjp.load_markets()
 
 Similarly, one can also load the data from the Good Judgment project
 surveys:
 
-	>>> s=gjp.Surveys()
-	>>> s.load()
+	>>> survey_fcasts=gjp.load_surveys()
 
-The `load` function might throw some warnings.
+The `load_markets()` function might throw some warnings.
 
-Now `m.forecasts` contains the forecasts from all prediction markets
+Now `market_fcasts` contains the forecasts from all prediction markets
 from the Good Judgement Project as a pandas DataFrame<!--TODO: link-->
-(and `s.forecasts` all from the surveys):
+(and `survey_fcasts` all from the surveys):
 
-	>>> m.forecasts
+	>>> market_fcasts
 	        question_id  user_id  team_id  probability  ... n_opts          options q_status q_type
-	0            1040.0   6203.0      0.0       0.4000  ...      2  (a) Yes, (b) No   closed      0
-	1            1040.0   6203.0      0.0       0.4500  ...      2  (a) Yes, (b) No   closed      0
+	0            1040.0     6203        0       0.4000  ...      2  (a) Yes, (b) No   closed      0
+	1            1040.0     6203        0       0.4500  ...      2  (a) Yes, (b) No   closed      0
 	...             ...      ...      ...          ...  ...    ...              ...      ...    ...
-	735430       1542.0  21975.0      9.0       0.0108  ...      2  (a) Yes, (b) No   closed      0
-	735431       1542.0  13854.0     28.0       0.0049  ...      2  (a) Yes, (b) No   closed      0
+	793499       1542.0    21975        9       0.0108  ...      2  (a) Yes, (b) No   closed      0
+	793500       1542.0    13854       28       0.0049  ...      2  (a) Yes, (b) No   closed      0
 
-	[735432 rows x 16 columns]
+	[793501 rows x 15 columns]
 
-The function [`load`](#loadfilesNone) is the central piece of the library,
-it gives you, the user, the data in [a format](#forecasts) that can be
-compared across datasets. The other functions are merely suggestions and
-can be ignored if they don't fit your use-case (iqisa wants to provide
-you with the data, and not be opinionated with what you do with that
-data in the end, and how you do it).
+The [`load`](#loadfilesNone) functions are the central piece of the
+library, as they give you, the user, the data in [a format](#forecasts)
+that can be compared across datasets. The other functions are merely
+suggestions and can be ignored if they don't fit your use-case (iqisa
+wants to provide you with the data, and not be opinionated with what
+you do with that data in the end, and how you do it).
 
 ### Aggregating and Scoring
 
