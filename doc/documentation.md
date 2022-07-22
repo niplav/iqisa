@@ -28,8 +28,6 @@ surveys:
 
 	>>> survey_fcasts=gjp.load_surveys()
 
-The `gjp.load_markets()` function might throw some warnings.
-
 Now `market_fcasts` contains the forecasts from all prediction markets
 from the Good Judgement Project as a [pandas](https://pandas.pydata.org/)
 DataFrame<!--TODO: link--> (and `survey_fcasts` all from the surveys):
@@ -106,7 +104,7 @@ Now, after aggregating the forecasts, is the Brier score better?
 	>>> aggr_scores=iqs.score(aggregations, brier_score)
 	>>> aggr_scores
 	                score
-	question_id          
+	question_id
 	1017.0       0.137540
 	1038.0       0.176242
 	...               ...
@@ -188,11 +186,6 @@ is a pandas DataFrame<!--TODO: link--> with shared columns:
 * `open_time`: The time at which the question was opened, i.e. at which forecasts could start. Type `datetime64[ns]`
 * `close_time`: The time at which the question was closed, i.e. at which the last possible forecast could be made. Type `datetime64[ns]`.
 * `resolve_time`: The time at which the resolution of the question was available. Type `datetime64[ns]`.
-<!--
-* `date_start`: * `date_suspend`: The datetime at which the question was suspended, i.e. at which no further forecasts were possible. Type `datetime64[ns]`. The biggest difference from `date_closed` seems to be that it also includes the time of closures.
-* `date_to_close`: The planned closing date of the question, type `datetime64[ns]`.
-* `date_closed`: The datetime at which the question was closed, type `datetime64[ns]`.
--->
 * `days_open`: The days for which the quesion was open, type `timedelta64[ns]`.
 * `n_opts`: The number of options the question had, type `int64`.
 * `options`: A string containing a description of the different possible options, type `str`.
@@ -215,7 +208,19 @@ Its columns are
 Loading Functions
 ------------------
 
-### `gjp.load_surveys(files=None)`
+### `gjp.load_surveys(files=None, processed=True, complete=False)`
+
+#### Additional Fields when `complete==True`
+
+* `forecast_id`
+* `fcast_type`
+* `fcast_date`
+* `expertise`
+* `viewtime`
+* `year`
+* `q_title`
+* `q_desc`
+* `short_title`
 
 #### Data Peculiarities
 
@@ -241,53 +246,9 @@ data from surveys:
 * ./data/gjp/survey_fcasts.yr3.csv.zip
 * ./data/gjp/survey_fcasts.yr4.csv.zip
 
-### `gjp.load_markets(files=None)`
+### `gjp.load_markets(files=None, processed=True, complete=False)`
 
-#### `gjp.market_files`
-
-A list containing the names of all files in the dataset that contain
-trades on prediction markets:
-
-* ./data/gjp/pm_transactions.lum1.yr2.csv
-* ./data/gjp/pm_transactions.lum2.yr2.csv
-* ./data/gjp/pm_transactions.lum1.yr3.csv
-* ./data/gjp/pm_transactions.lum2a.yr3.csv
-* ./data/gjp/pm_transactions.lum2.yr3.csv
-* ./data/gjp/pm_transactions.inkling.yr3.csv
-* ./data/gjp/pm_transactions.control.yr4.csv
-* ./data/gjp/pm_transactions.batch.train.yr4.csv
-* ./data/gjp/pm_transactions.batch.notrain.yr4.csv
-* ./data/gjp/pm_transactions.supers.yr4.csv
-* ./data/gjp/pm_transactions.teams.yr4.csv
-
-### `metaculus.load_private_binary(data_file)`
-
-### `metaculus.load_questions(q_files=None)`
-
-### `gjp.load_questions(q_files=None)`
-
-Returns a pandas DataFrame with the columns described [here](#Questions)
-loaded from `q_files`, by default from the files listed in
-`gjp.questions_files` (value `[./data/gjp/ifps.csv]`).
-
-Additionally, this questions data contains the columns
-
-* `q_desc`: The description of the question, including resolution criteria, type `str`.
-* `short_title`: The shortened title of the question, type `str`.
-
-### `gjp.load_complete_surveys(files=None)`
-
-* `forecast_id`
-* `fcast_type`
-* `fcast_date`
-* `expertise`
-* `viewtime`
-* `year`
-* `q_title`
-* `q_desc`
-* `short_title`
-
-### `gjp.load_complete_markets(files=None)`
+#### Additional Fields when `complete==True`
 
 * `islong`
 * `by_agent`
@@ -308,6 +269,41 @@ Additionally, this questions data contains the columns
 * `isbuy`
 * `prob_est`
 * `market_name`
+
+#### `gjp.market_files`
+
+A list containing the names of all files in the dataset that contain
+trades on prediction markets:
+
+* ./data/gjp/pm_transactions.lum1.yr2.csv
+* ./data/gjp/pm_transactions.lum2.yr2.csv
+* ./data/gjp/pm_transactions.lum1.yr3.csv
+* ./data/gjp/pm_transactions.lum2a.yr3.csv
+* ./data/gjp/pm_transactions.lum2.yr3.csv
+* ./data/gjp/pm_transactions.inkling.yr3.csv
+* ./data/gjp/pm_transactions.control.yr4.csv
+* ./data/gjp/pm_transactions.batch.train.yr4.csv
+* ./data/gjp/pm_transactions.batch.notrain.yr4.csv
+* ./data/gjp/pm_transactions.supers.yr4.csv
+* ./data/gjp/pm_transactions.teams.yr4.csv
+
+### `metaculus.load_private_binary(data_file)`
+
+### `metaculus.load_questions(files=None)`
+
+### `gjp.load_questions(files=None)`
+
+Returns a pandas DataFrame with the columns described [here](#Questions)
+loaded from `q_files`, by default from the files listed in
+`gjp.questions_files` (value `[./data/gjp/ifps.csv]`).
+
+The field `resolve_time` is the same as `close_time`, as the GJOpen data
+doesn't distinguish the two times.
+
+Additionally, this questions data contains the columns
+
+* `q_desc`: The description of the question, including resolution criteria, type `str`.
+* `short_title`: The shortened title of the question, type `str`.
 
 General Functions
 ------------------

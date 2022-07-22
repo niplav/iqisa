@@ -1,9 +1,6 @@
 import gjp
 
-m=gjp.Markets()
-s=gjp.Surveys()
+m=gjp.load_markets()
+s=gjp.load_surveys()
 
-m.load()
-s.load()
-
-m.forecasts.loc[(m.forecasts['question_id']==1040)&(m.forecasts['answer_option']=='a')&(m.forecasts['user_id']==6203)&(m.forecasts['probability']==0.45)]
+m.loc[(m['question_id']==1040)&(m['answer_option']=='a')&(m['user_id']==6203)&(m['probability']==0.45)]

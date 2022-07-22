@@ -28,10 +28,13 @@ Forecasters ranked by previous performance
 		* outputs: input dataframe with cumulative scoring rule value & percentile among all forecasters
 
 No subtly dropping data in market loading? (of voided questions, that is)
+Test whether datetime data is as compatible as I think it is
 
 Forum post
 	Qualitative user studies
 	Reciprocal code review
+
+Save converted files to CSV for faster loading
 
 Perhaps incorporate from all Metaforecast platforms?
 	betfair.ts
@@ -54,22 +57,13 @@ Perhaps incorporate from all Metaforecast platforms?
 	registry.ts
 	xrisk.ts
 
-There's a clash between metaculus & gjopen data:
-	* gjopen doesn't have a conception of a question being closed, it's either resolved or not.
-		* Recitfy this in the fields q_status, close_time and resolve_time!
+Send Nikos Bosse CSVs for the datasets
 
 Incorrect fields:
-	markets:
-		user_id should be float64
-		team_id should be float64
-	surveys:
-		question_id should be float64
 	metaculus private binary:
 		question_id should be float64
 		user_id should be float64
 		team_id should be float64
-	For GJP, make all "closed" q_statuses "resolved", and set "close_time" to NaT
 	Change team id 0 to NaN in GJP data.
-	Make all times datetime.datetime instead of datetime64[ns] (bc of overflow)
 	Think about:
 		is answer_option as string really that good?

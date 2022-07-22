@@ -11,7 +11,11 @@ import iqisa as iqs
 
 questions_files=['./data/gjp/ifps.csv']
 
+processed_survey_files=['./data/gjp/surveys.csv.zip']
+
 survey_files=['./data/gjp/survey_fcasts.yr1.csv', './data/gjp/survey_fcasts.yr2.csv', './data/gjp/survey_fcasts.yr3.csv.zip', './data/gjp/survey_fcasts.yr4.csv.zip']
+
+processed_market_files=['./data/gjp/markets.csv.zip']
 
 market_files=['./data/gjp/pm_transactions.lum1.yr2.csv', './data/gjp/pm_transactions.lum2.yr2.csv', './data/gjp/pm_transactions.lum1.yr3.csv', './data/gjp/pm_transactions.lum2a.yr3.csv', './data/gjp/pm_transactions.lum2.yr3.csv', './data/gjp/pm_transactions.inkling.yr3.csv', './data/gjp/pm_transactions.control.yr4.csv', './data/gjp/pm_transactions.batch.train.yr4.csv', './data/gjp/pm_transactions.batch.notrain.yr4.csv', './data/gjp/pm_transactions.supers.yr4.csv', './data/gjp/pm_transactions.teams.yr4.csv']
 
@@ -193,9 +197,9 @@ def get_option_from_options(t):
 		return finds[0]
 	return '' # give up, but this doesn't happen on the current data
 
-def load_questions(q_files=None):
-	if q_files==None:
-		q_files=questions_files
+def load_questions(files=None):
+	if files==None:
+		files=questions_files
 	questions=pd.DataFrame()
 
 	for f in questions_files:
@@ -278,7 +282,7 @@ def load_complete_markets(files=None, probmargin=0.005):
 		# (-1), 'b' is the second market (-2), etc. Don't
 		# ask, I didn't make this up). Therefore, we here
 		# have to remove forecasts on voided questions
-		# from the dataset.  Furthermore, the answer on
+		# from the dataset. Furthermore, the answer on
 		# the non-voided conditional market is always
 		# assumed to be "a", so we have to insert it.
 		if 'remove_voided' in market_fixes[f]['fixes']:
@@ -317,14 +321,11 @@ def load_complete_markets(files=None, probmargin=0.005):
 	# prices in (-∞,0]∪[1,∞) are truncated to [MIN_PROB, 1-MIN_PROB]
 	forecasts.loc[forecasts['probability']<=0, 'probability']=probmargin
 	forecasts.loc[forecasts['probability']>=1, 'probability']=1-probmargin
+	forecasts.loc[forecasts['q_status']=='closed', 'q_status']='resolved'
 
-	forecasts['team_id']=pd.to_numeric(forecasts['team_id'])
+	forecasts['user_id']=pd.to_numeric(forecasts['user_id'], downcast='float')
+	forecasts['team_id']=pd.to_numeric(forecasts['team_id'], downcast='float')
 
-	return forecasts
-
-def load_markets(files=None):
-	forecasts=load_complete_markets(files)
-	forecasts=forecasts.reindex(columns=iqs.comparable_index)
 	return forecasts
 
 def load_complete_surveys(files=None, probmargin=0.005):
@@ -342,7 +343,7 @@ def load_complete_surveys(files=None, probmargin=0.005):
 	forecasts=forecasts.rename(columns={'ifp_id': 'question_id', 'value': 'probability', 'team': 'team_id', 'ctt': 'user_type'}, errors="raise")
 	forecasts['q_type']=forecasts['question_id'].apply(extract_type)
 	forecasts['question_id']=forecasts['question_id'].apply(extract_id)
-	forecasts['question_id']=pd.to_numeric(forecasts['question_id'])
+	forecasts['question_id']=pd.to_numeric(forecasts['question_id'], downcast='float')
 
 	questions=load_questions()
 
@@ -356,9 +357,52 @@ def load_complete_surveys(files=None, probmargin=0.005):
 	forecasts['user_id']=pd.to_numeric(forecasts['user_id'])
 	forecasts['team_id']=pd.to_numeric(forecasts['team_id'])
 
+	forecasts.loc[forecasts['q_status']=='closed', 'q_status']='resolved'
+
 	return forecasts
 
-def load_surveys(files=None):
+def load_surveys(files=None, processed=True, complete=False):
+	if files==None:
+		if processed:
+			files=processed_survey_files
+		else:
+			files=survey_files
+	if processed:
+		return load_processed(files)
+	if complete:
+		return load_complete_surveys(files)
+
 	forecasts=load_complete_surveys(files)
 	forecasts=forecasts.reindex(columns=iqs.comparable_index)
+
+	return forecasts
+
+def load_markets(files=None, processed=True, complete=False):
+	if files==None:
+		if processed:
+			files=processed_market_files
+		else:
+			files=market_files
+	if processed:
+		return load_processed(files)
+	if complete:
+		return load_complete_markets(files)
+
+	forecasts=load_complete_markets(files)
+	forecasts=forecasts.reindex(columns=iqs.comparable_index)
+
+	return forecasts
+
+def load_processed(files):
+	forecasts=pd.DataFrame()
+
+	for f in files:
+		forecasts=pd.concat([forecasts, pd.read_csv(f)])
+
+	date_fields=['timestamp', 'open_time', 'close_time', 'resolve_time']
+
+	for f in date_fields:
+		forecasts[f]=pd.to_datetime(forecasts[f], dayfirst=True)
+
+	forecasts['days_open']=pd.to_timedelta(forecasts['days_open'])
 	return forecasts

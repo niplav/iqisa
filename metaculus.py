@@ -1,5 +1,4 @@
 import json
-import time
 
 import datetime as dt
 import numpy as np
@@ -30,14 +29,15 @@ def load_complete_private_binary(data_file):
 	for question in jsondata:
 		if question['question_type']=='binary':
 			resolution=str(question['resolution'])
-			open_time=pd.to_datetime(question['publish_time'])
-			resolve_time=pd.to_datetime(question['resolve_time'])
+			open_time=dt.datetime.fromisoformat(question['publish_time'])
+			open_time=dt.datetime.fromisoformat(question['publish_time'])
+			resolve_time=dt.datetime.fromisoformat(question['resolve_time'])
 			question_title=str(question['question_title'])
 			numf=0
 			for forecast in question['prediction_timeseries']:
 				user_ids.append(int(forecast['user_id']))
 				probabilities.append(float(forecast['prediction']))
-				timestamps.append(pd.to_datetime(forecast['timestamp'], unit='s'))
+				timestamps.append(dt.datetime.fromtimestamp(forecast['timestamp']))
 				numf+=1
 			open_times+=[open_time]*numf
 			resolve_times+=[resolve_time]*numf
@@ -58,15 +58,21 @@ def load_complete_private_binary(data_file):
 	forecasts=pd.merge(forecasts, questions, on=['q_title'], suffixes=('', '_y'))
 	forecasts=forecasts.drop(columns=['open_time_y', 'resolve_time_y', 'outcome_y', 'q_status_y'])
 	forecasts.reindex(columns=['question_id', 'user_id', 'team_id', 'probability', 'answer_option', 'timestamp', 'outcome', 'open_time', 'close_time', 'resolve_time', 'days_open', 'n_opts', 'options', 'q_status', 'q_type'])
+
+	forecasts['question_id']=pd.to_numeric(forecasts['question_id'], downcast='float')
+	forecasts['user_id']=pd.to_numeric(forecasts['user_id'], downcast='float')
+	forecasts['team_id']=pd.to_numeric(forecasts['team_id'], downcast='float')
+	forecasts['question_id']=pd.to_numeric(forecasts['question_id'], downcast='float')
+
 	return forecasts
 
-def load_questions(q_files=None):
-	if q_files==None:
-		q_files=questions_files
+def load_questions(files=None):
+	if files==None:
+		files=questions_files
 
 	questions=pd.DataFrame()
 
-	for data_file in q_files:
+	for data_file in files:
 		f=open(data_file)
 		jsondata=json.load(f)
 
@@ -80,16 +86,16 @@ def load_questions(q_files=None):
 
 		for question in jsondata:
 			question_ids.append(int(question['question_id']))
-			open_times.append(pd.to_datetime(question['open_time']))
-			# without the coerce this would sometimes fail
-			# because for Metaculus data some resolution times
-			# are outside the 64-bit nanosecond representable
-			# timescale
-			# TODO: Fix by switching to python datetime
-			# instead of pandas datetime
-			close_time=pd.to_datetime(question['close_time'], errors='coerce')
+			# apparently datetime.fromisoformat doesn't
+			# recognize the postfix 'Z' as indicating UTC as
+			# a timezone (why? why? why?), so I'll remove it
+			# here, since all times are UTC anyway.
+			open_time=dt.datetime.fromisoformat(question['open_time'].replace('Z', ''))
+			open_times.append(open_time)
+			close_time=dt.datetime.fromisoformat(question['close_time'].replace('Z', ''))
 			close_times.append(close_time)
-			resolve_times.append(pd.to_datetime(question['resolve_time'], errors='coerce'))
+			resolve_time=dt.datetime.fromisoformat(question['resolve_time'].replace('Z', ''))
+			resolve_times.append(resolve_time)
 			if question['outcome']==None or question['outcome']==-1:
 				outcomes.append(np.nan)
 			else:
@@ -100,7 +106,7 @@ def load_questions(q_files=None):
 				# I don't see the data giving any better indication of
 				# whether the question has closed
 				# TODO: think about this with a Yoda timer?
-				now=pd.to_datetime(dt.datetime.utcnow(), utc=True)
+				now=dt.datetime.utcnow()
 				if now>close_time:
 					question_statuses.append('closed')
 				else:
