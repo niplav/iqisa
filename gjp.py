@@ -154,48 +154,48 @@ market_fixes={
 	'./data/gjp/pm_transactions.supers.yr4.csv': year4_default_changes,
 }
 
-def simplify_id(s):
-	p=re.compile('^[0-9]+')
-	return p.findall(s)[0] if type(s)==str else s
+def simplify_id(question_id):
+	pattern=re.compile('^[0-9]+')
+	return pattern.findall(question_id)[0] if isinstance(question_id, str) else question_id
 
-def extract_id(s):
-	p=re.compile('^[0-9]+')
-	return str(p.findall(s)[0])
+def extract_id(market_name):
+	pattern=re.compile('^[0-9]+')
+	return str(pattern.findall(market_name)[0])
 
-def extract_type(s):
-	p=re.compile('-([0-6])$')
-	return int(p.findall(s)[0])
+def extract_type(question_id):
+	pattern=re.compile('-([0-6])$')
+	return int(pattern.findall(question_id)[0])
 
-def extract_team(s):
-	if s=='DEFAULT':
+def extract_team(team_id):
+	if team_id=='DEFAULT':
 		return 0 # team ID 0 has not been given.
-	p=re.compile('e([0-9]{1,2})$')
-	return int(p.findall(s)[0])
+	pattern=re.compile('e([0-9]{1,2})$')
+	return int(pattern.findall(team_id)[0])
 
 # the data has trades on markets, stock names (sn) are possibly substrings
 # of the options, preceded by the name of the option [a-e].
-# yeah, i don't know why anyone would do this either.
-def get_option_from_options(t):
-	n=t[1]
-	sn=t[0]
+# yeah, i don'stockname_and_options know why anyone would do this either.
+def get_option_from_options(stockname_and_options):
+	option=stockname_and_options[1]
+	stockname=stockname_and_options[0]
 	#for some reason (!?) the answer options may contain these
-	sne=re.escape(sn.replace('**', ''))
-	n=n.replace('**', '')
-	p=re.compile('\((.)\) ?'+sne)
-	finds=p.findall(n)
+	stockname=re.escape(stockname.replace('**', ''))
+	option=option.replace('**', '')
+	pattern=re.compile('\((.)\) ?'+stockname)
+	finds=pattern.findall(option)
 	if len(finds)==1:
 		return finds[0]
 	# the conditional came to pass
-	p=re.compile(sne+'[^\(]+\((.)\)')
-	finds=p.findall(n)
+	pattern=re.compile(stockname+'[^\(]+\((.)\)')
+	finds=pattern.findall(option)
 	if len(finds)==1:
 		return finds[0]
-	# the conditional didn't come to pass
-	p=re.compile('\((.)\)[^\(]+$')
-	finds=p.findall(n)
+	# the conditional didn'stockname_and_options come to pass
+	pattern=re.compile('\((.)\)[^\(]+$')
+	finds=pattern.findall(option)
 	if len(finds)==1:
 		return finds[0]
-	return '' # give up, but this doesn't happen on the current data
+	return '' # give up, but this doesn'stockname_and_options happen on the current data
 
 def load_questions(files=None):
 	if files==None:
@@ -252,8 +252,8 @@ def load_complete_markets(files=None, probmargin=0.005):
 		if 'price_after_perc' in market_fixes[f]['fixes']:
 			market['prob_after_trade']=market['prob_after_trade'].map(lambda x: float(x.replace('%', ''))/100)
 		if 'prob_est_perc' in market_fixes[f]['fixes']:
-			strperc=market.loc[market['prob_est'].map(type)==str]
-			market.loc[market['prob_est'].map(type)==str, 'prob_est']=strperc['prob_est'].map(lambda x: np.nan if x=='no' else float(x.replace('%', ''))/100)
+			strperc=market.loc[market['prob_est'].map(lambda x: isinstance(x, str))]
+			market.loc[market['prob_est'].map(lambda x: isinstance(x, str)), 'prob_est']=strperc['prob_est'].map(lambda x: np.nan if x=='no' else float(x.replace('%', ''))/100)
 		if 'price_before_100' in market_fixes[f]['fixes']:
 			market['probability']=market['probability'].map(lambda x: float(x))/100
 		if 'price_after_100' in market_fixes[f]['fixes']:
