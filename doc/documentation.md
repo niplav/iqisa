@@ -229,6 +229,8 @@ markets. They have the same arguments.
 A DataFrame in the format described [here](#Forecasts) loaded from
 `files`, potentially with additional columns.
 
+Raises an Exception if both `processed` and `complete` are set to `True`.
+
 ##### Additional Fields when `complete=True`
 
 Setting `complete=True` loads the following additional fields for
@@ -568,6 +570,7 @@ or the question is closed.
 	>>> len(s)
 	940598
 
+<!--
 ### `generic_aggregate(group, summ='arith', format='probs', decay='nodec', extremize='noextr', extrfactor=3, fill=False, expertise=False)`
 
 #### Arguments
@@ -586,3 +589,4 @@ different options on the same question sum to 1.
 None.
 
 #### Returns
+-->

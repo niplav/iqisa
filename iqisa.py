@@ -37,13 +37,13 @@ def aggregate(
     question_id, user_id, timestamp, probability, answer_option, outcome, date_closed"""
     # TODO: throw an error if on isn't a subset of columns of forecasts
     aggregations = forecasts.groupby(on).apply(
-        apply_aggregation, aggregation_function, *args, **kwargs
+        _apply_aggregation, aggregation_function, *args, **kwargs
     )
     aggregations.index = aggregations.index.droplevel(["question_id", "answer_option"])
     return aggregations
 
 
-def apply_aggregation(group, aggregation_function, *args, **kwargs):
+def _apply_aggregation(group, aggregation_function, *args, **kwargs):
     transformed_probs = np.array(aggregation_function(group, *args, **kwargs))
     return pd.DataFrame(
         {
@@ -57,12 +57,12 @@ def apply_aggregation(group, aggregation_function, *args, **kwargs):
 
 def score(forecasts, scoring_rule, on=["question_id"], *args, **kwargs):
     # TODO: throw an error if on isn't a subset of columns of forecasts
-    scores = forecasts.groupby(on).apply(apply_score, scoring_rule, *args, **kwargs)
+    scores = forecasts.groupby(on).apply(_apply_score, scoring_rule, *args, **kwargs)
     scores.index = scores.index.droplevel(1)
     return scores
 
 
-def apply_score(group, scoring_rule, *args, **kwargs):
+def _apply_score(group, scoring_rule, *args, **kwargs):
     probabilities = np.array(group["probability"])
     outcomes = np.array(group["outcome"])
     options = np.array(group["answer_option"])
@@ -76,10 +76,10 @@ def apply_score(group, scoring_rule, *args, **kwargs):
 
 
 def normalise(aggregations, on=["question_id"]):
-    aggregations = aggregations.groupby(on).apply(apply_normalise)
+    aggregations = aggregations.groupby(on).apply(_apply_normalise)
 
 
-def apply_normalise(group):
+def _apply_normalise(group):
     Z = np.sum(group["probability"])
     group["probability"] = group["probability"] / Z
     return group
@@ -95,13 +95,13 @@ def apply_normalise(group):
 
 def add_cumul_user_score(forecasts, scoring_rule, *args, **kwargs):
     forecasts = forecasts.groupby(["user_id"]).apply(
-        self.cumul_score, scoring_rule, *args, **kwargs
+        self._cumul_score, scoring_rule, *args, **kwargs
     )
     forecasts = forecasts.reset_index(drop=True)
     return forecasts
 
 
-def cumul_score(group, scoring_rule, *args, **kwargs):
+def _cumul_score(group, scoring_rule, *args, **kwargs):
     group = group.sort_values("date_suspend")
     fst = group.index[0]
     cumul_scores = []
@@ -140,7 +140,7 @@ def add_cumul_user_perc(forecasts, lower_better=True):
         user_scores = resbef.groupby(["user_id"])["cumul_score"].last()
         user_scores = np.sort(user_scores)
         curscore = cur["cumul_score"].values[0]
-        if len(user_scores) == 0:
+        if not user_scores:
             # by default assume the user is average
             percentile = 0.5
         else:
@@ -166,7 +166,7 @@ def frontfill(forecasts):
     """forecasts should be a dataframe with at least these five fields:
     question_id, user_id, timestamp, probability"""
     forecasts = forecasts.groupby(["question_id", "user_id", "answer_option"]).apply(
-        frontfill_group
+        _frontfill_group
     )
     forecasts.index = forecasts.index.droplevel(
         ["question_id", "user_id", "answer_option"]
@@ -174,7 +174,7 @@ def frontfill(forecasts):
     return forecasts
 
 
-def frontfill_group(group):
+def _frontfill_group(group):
     """warning: this makes the forecast ids useless"""
     dates = pd.date_range(
         start=min(group["timestamp"]),

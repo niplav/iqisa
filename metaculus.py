@@ -10,11 +10,11 @@ questions_files = ["./data/metaculus/questions.json"]
 
 
 def load_private_binary(data_file):
-    forecasts = load_complete_private_binary(data_file)
+    forecasts = _load_complete_private_binary(data_file)
     return forecasts
 
 
-def load_complete_private_binary(data_file):
+def _load_complete_private_binary(data_file):
     f = open(data_file)
     jsondata = json.load(f)
 
@@ -106,7 +106,7 @@ def load_complete_private_binary(data_file):
 
 
 def load_questions(files=None):
-    if files == None:
+    if files is None:
         files = questions_files
 
     questions = pd.DataFrame()
@@ -141,13 +141,13 @@ def load_questions(files=None):
                 question["resolve_time"].replace("Z", "")
             )
             resolve_times.append(resolve_time)
-            if question["outcome"] == None or question["outcome"] == -1:
+            if question["outcome"] is None or question["outcome"] == -1:
                 outcomes.append(np.nan)
             else:
                 outcomes.append(str(question["outcome"]))
             question_titles.append(question["question_title"])
 
-            if question["outcome"] == None:
+            if question["outcome"] is None:
                 # I don't see the data giving any better indication of
                 # whether the question has closed
                 # TODO: think about this with a Yoda timer?
