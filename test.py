@@ -60,8 +60,12 @@ assert (
             (m["probability"] == 0.1726)
             & (m["user_id"] == 8545)
             & (m["question_id"] == 1541)
-            & (m['answer_option']=='a')
+            & (m["answer_option"] == "a")
         ]
     )
     == 1
 )
+
+assert(len(m.loc[(m['timestamp']==pd.to_datetime('2015-09-06T17:07'))])==1)
+
+assert(len(m.loc[(m['timestamp']==pd.to_datetime('2015-02-17T19:36')) & (m['probability']==0.6074)])==1)

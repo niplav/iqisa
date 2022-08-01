@@ -113,6 +113,7 @@ _year4_default_changes = {
         "option_from_stock_name",
         "with_prob_est",
         "without_team_id",
+        "with_before_trade",
     ],
     "column_rename": {
         "Trade.ID": "order_id",
