@@ -66,6 +66,18 @@ assert (
     == 1
 )
 
-assert(len(m.loc[(m['timestamp']==pd.to_datetime('2015-09-06T17:07'))])==1)
+assert len(m.loc[(m["timestamp"] == pd.to_datetime("2015-09-06T17:07"))]) == 1
 
-assert(len(m.loc[(m['timestamp']==pd.to_datetime('2015-02-17T19:36')) & (m['probability']==0.6074)])==1)
+assert (
+    len(
+        m.loc[
+            (m["timestamp"] == pd.to_datetime("2015-02-17T19:36"))
+            & (m["probability"] == 0.6074)
+        ]
+    )
+    == 1
+)
+
+assert(len(m.loc[(m['user_id']==6707) & (m['question_id']==1240) & (m['probability']==0.05) & (m['timestamp']==pd.to_datetime("2013-08-05T06:23:49"))])==1)
+
+assert(len(s.loc[(s['user_id']==5723) & (s['team_id']==3) & (s['probability']==0.35) & (s['q_type']==6) & (s['answer_option']=='b') & (s['question_id']==1126)])==1)
