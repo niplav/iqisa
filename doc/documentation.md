@@ -257,7 +257,7 @@ Setting `complete=True` loads the following additional fields for
 * `trade_type`
 * `with_mm`
 * `divest_only`
-* `prob_after_trade`
+* `prob_before_trade`
 * `matching_order_id`
 * `high_fuse`
 * `stock_name`

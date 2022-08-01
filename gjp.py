@@ -39,7 +39,7 @@ market_files = [
 _year2_default_changes = {
     "fixes": [
         "timestamp",
-        "price_before_100",
+        "price_after_100",
         "question_id_str",
         "without_team_id",
         "insert_outcomes",
@@ -86,9 +86,9 @@ _year3_default_changes = {
         "With.MM": "with_mm",
         "By.Agent": "by_agent",
         "Matching.Order.ID": "matching_order_id",
-        "Order.Price": "probability",
+        "Order.Price": "prob_before_trade",
         "Order.Qty": "quantity",
-        "Trade.Price": "prob_after_trade",
+        "Trade.Price": "probability",
         "Trade.Qty": "trade_qty",
         "Tru.Belief": "prob_est",
         "Low.Fuse": "low_fuse",
@@ -123,8 +123,8 @@ _year4_default_changes = {
         "Spent": "spent",
         "Created.At": "created_at",
         "Filled.At": "timestamp",
-        "Price.Before": "probability",
-        "Price.After": "prob_after_trade",
+        "Price.Before": "prob_before_trade",
+        "Price.After": "probability",
         "Probability.Estimate": "prob_est",
         "GJP.User.ID": "user_id",
     },
@@ -138,11 +138,11 @@ _market_fixes = {
     "./data/gjp/pm_transactions.lum2.yr3.csv": {
         "fixes": [
             "timestamp",
-            "price_before_100",
+            "price_after_100",
             "prob_est_100",
             "question_id_str",
             "team_bad",
-            "with_after_trade",
+            "with_before_trade",
             "insert_outcomes",
             "with_prob_est",
             "remove_voided",
@@ -160,9 +160,9 @@ _market_fixes = {
             "With.MM": "with_mm",
             "By.Agent": "by_agent",
             "Matching.Order.ID": "matching_order_id",
-            "Order.Price": "probability",
+            "Order.Price": "prob_before_trade",
             "Order.Qty": "quantity",
-            "Trade.Price": "prob_after_trade",
+            "Trade.Price": "probability",
             "Trade.Qty": "trade_qty",
             "Tru.Belief": "prob_est",
             "Low.Fuse": "low_fuse",
@@ -182,7 +182,7 @@ _market_fixes = {
             "prob_est_perc",
             "id_by_name",
             "option_from_stock_name",
-            "with_after_trade",
+            "with_before_trade",
             "with_prob_est",
             "without_team_id",
             "insert_outcomes",
@@ -196,8 +196,8 @@ _market_fixes = {
             "type": "op_type",
             "created.at": "created_at",
             "filled.at": "timestamp",
-            "price_before": "probability",
-            "price_after": "prob_after_trade",
+            "price_before": "prob_before_trade",
+            "price_after": "probability",
             "probability_estimate": "prob_est",
             "gjp.user.id": "user_id",
         },
@@ -213,7 +213,7 @@ _market_fixes = {
             "id_in_name",
             "insert_outcome",
             "option_from_stock_name",
-            "with_after_trade",
+            "with_before_trade",
             "with_prob_est",
             "insert_outcomes",
         ],
@@ -226,8 +226,8 @@ _market_fixes = {
             "Spent": "spent",
             "Created.At": "created_at",
             "Filled.At": "timestamp",
-            "Price.Before": "probability",
-            "Price.After": "prob_after_trade",
+            "Price.Before": "prob_before_trade",
+            "Price.After": "probability",
             "Probability.Estimate": "prob_est",
             "GJP.Team.ID": "team_id",
             "GJP.User.ID": "user_id",
@@ -360,12 +360,12 @@ def _load_complete_markets(files=None, probmargin=0.005):
             market["created_at"] = pd.to_datetime(market["created_at"], dayfirst=True)
         if "timestamp" in _market_fixes[f]["fixes"]:
             market["timestamp"] = pd.to_datetime(market["timestamp"], dayfirst=True)
-        if "price_before_perc" in _market_fixes[f]["fixes"]:
+        if "price_after_perc" in _market_fixes[f]["fixes"]:
             market["probability"] = market["probability"].map(
                 lambda x: float(x.replace("%", "")) / 100
             )
-        if "price_after_perc" in _market_fixes[f]["fixes"]:
-            market["prob_after_trade"] = market["prob_after_trade"].map(
+        if "price_before_perc" in _market_fixes[f]["fixes"]:
+            market["prob_before_trade"] = market["prob_before_trade"].map(
                 lambda x: float(x.replace("%", "")) / 100
             )
         if "prob_est_perc" in _market_fixes[f]["fixes"]:
@@ -375,11 +375,11 @@ def _load_complete_markets(files=None, probmargin=0.005):
             ] = strperc["prob_est"].map(
                 lambda x: np.nan if x == "no" else float(x.replace("%", "")) / 100
             )
-        if "price_before_100" in _market_fixes[f]["fixes"]:
-            market["probability"] = market["probability"].map(lambda x: float(x)) / 100
         if "price_after_100" in _market_fixes[f]["fixes"]:
-            market["prob_after_trade"] = (
-                market["prob_after_trade"].map(lambda x: float(x)) / 100
+            market["probability"] = market["probability"].map(lambda x: float(x)) / 100
+        if "price_before_100" in _market_fixes[f]["fixes"]:
+            market["prob_before_trade"] = (
+                market["prob_before_trade"].map(lambda x: float(x)) / 100
             )
         if "prob_est_100" in _market_fixes[f]["fixes"]:
             market["prob_est"] = market["prob_est"].map(lambda x: float(x)) / 100
@@ -394,9 +394,11 @@ def _load_complete_markets(files=None, probmargin=0.005):
             )
         if "team_bad" in _market_fixes[f]["fixes"]:
             market["team_id"] = market["team_id"].apply(_extract_team)
-        if "with_after_trade" in _market_fixes[f]["fixes"]:
-            market.loc[market["prob_after_trade"] <= 0, "prob_after_trade"] = probmargin
-            market.loc[market["prob_after_trade"] >= 1, "prob_after_trade"] = (
+        if "with_before_trade" in _market_fixes[f]["fixes"]:
+            market.loc[
+                market["prob_before_trade"] <= 0, "prob_before_trade"
+            ] = probmargin
+            market.loc[market["prob_before_trade"] >= 1, "prob_before_trade"] = (
                 1 - probmargin
             )
         if "with_prob_est" in _market_fixes[f]["fixes"]:
