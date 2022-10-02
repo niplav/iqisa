@@ -32,7 +32,6 @@ def _load_complete_private_binary(data_file):
         if question["question_type"] == "binary":
             resolution = str(question["resolution"])
             open_time = dt.datetime.fromisoformat(question["publish_time"])
-            open_time = dt.datetime.fromisoformat(question["publish_time"])
             resolve_time = dt.datetime.fromisoformat(question["resolve_time"])
             question_title = str(question["question_title"])
             numf = 0
@@ -47,7 +46,6 @@ def _load_complete_private_binary(data_file):
             question_titles += [question_title] * numf
     numf = len(probabilities)
     answer_options = ["1"] * numf
-    outcomes = ["1"] * numf
     team_ids = [0] * numf
     n_opts = [2] * numf
     options = ["(0) No, (1) Yes"] * numf
