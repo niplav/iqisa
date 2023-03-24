@@ -70,10 +70,20 @@ def _load_complete_private_binary(data_file):
         }
     )
 
+    # we need this because the private data *for some reason?* doesn't include
+    # close times for questions
+
     questions = load_questions()
     forecasts = pd.merge(forecasts, questions, on=["q_title"], suffixes=("", "_y"))
     forecasts = forecasts.drop(
-        columns=["open_time_y", "resolve_time_y", "outcome_y", "q_status_y"]
+        columns=[
+            "open_time_y",
+            "resolve_time_y",
+            "outcome_y",
+            "q_status_y",
+            "n_opts_y",
+            "options_y",
+        ]
     )
     forecasts.reindex(
         columns=[
@@ -87,7 +97,7 @@ def _load_complete_private_binary(data_file):
             "open_time",
             "close_time",
             "resolve_time",
-            "days_open",
+            "time_open",
             "n_opts",
             "options",
             "q_status",
@@ -163,7 +173,7 @@ def load_questions(files=None):
         n_opts = [2] * numq
         q_type = [0] * numq
         options = ["(0) No, (1) Yes"] * numq
-        days_open = np.array(close_times) - np.array(open_times)
+        time_open = np.array(close_times) - np.array(open_times)
 
         newquestions = pd.DataFrame(
             {
@@ -174,7 +184,7 @@ def load_questions(files=None):
                 "close_time": close_times,
                 "resolve_time": resolve_times,
                 "outcome": outcomes,
-                "days_open": days_open,
+                "time_open": time_open,
                 "n_opts": n_opts,
                 "options": options,
             }

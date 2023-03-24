@@ -186,7 +186,7 @@ is a pandas DataFrame<!--TODO: link--> with shared columns:
 * `open_time`: The time at which the question was opened, i.e. at which forecasts could start. Type `datetime64[ns]`
 * `close_time`: The time at which the question was closed, i.e. at which the last possible forecast could be made. Type `datetime64[ns]`.
 * `resolve_time`: The time at which the resolution of the question was available. Type `datetime64[ns]`.
-* `days_open`: The days for which the quesion was open, type `timedelta64[ns]`.
+* `time_open`: The amount time for which the quesion was open, type `timedelta64[ns]`.
 * `n_opts`: The number of options the question had, type `int64`.
 * `options`: A string containing a description of the different possible options, type `str`.
 * `q_status`: The status of the question the forecast was made on, type `str`.
@@ -202,7 +202,7 @@ Its columns are
 
 <!--TODO: describe further-->
 
-* `question_id`, `date_start`, `date_suspend`, `date_to_close`, `date_closed`, `outcome`, `q_type`, `q_status`, `days_open`, `n_opts`, `options`: As in the [description of `forecasts` above](#forecasts)
+* `question_id`, `date_start`, `date_suspend`, `date_to_close`, `date_closed`, `outcome`, `q_type`, `q_status`, `time_open`, `n_opts`, `options`: As in the [description of `forecasts` above](#forecasts)
 * `q_title`: The title of the question, as a `str`.
 
 Loading Functions

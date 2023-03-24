@@ -314,13 +314,14 @@ def load_questions(files=None):
             "date_suspend": "close_time",
             "date_to_close": "resolve_time",
             "date_closed": "close_date",
+            "days_open": "time_open",
             "q_text": "q_title",
         },
         errors="raise",
     )
     questions.loc[:, "question_id"] = questions["question_id"].map(_simplify_id)
     questions["question_id"] = pd.to_numeric(questions["question_id"], downcast="float")
-    questions["days_open"] = pd.to_timedelta(questions["days_open"], unit="D")
+    questions["time_open"] = pd.to_timedelta(questions["time_open"], unit="D")
 
     return questions
 
@@ -462,7 +463,7 @@ def _load_complete_markets(files=None, probmargin=0.005):
             "open_time",
             "close_time",
             "resolve_time",
-            "days_open",
+            "time_open",
             "n_opts",
             "options",
             "q_status",
@@ -576,5 +577,5 @@ def load_processed(files):
     for f in date_fields:
         forecasts[f] = pd.to_datetime(forecasts[f], dayfirst=True)
 
-    forecasts["days_open"] = pd.to_timedelta(forecasts["days_open"])
+    forecasts["time_open"] = pd.to_timedelta(forecasts["time_open"])
     return forecasts
