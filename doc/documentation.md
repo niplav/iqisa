@@ -1,10 +1,3 @@
-[home](./index.md)
-------------------
-
-*author: niplav, created: 2022-07-15, modified: 2023-03-24, language: english, status: notes, importance: 6, confidence: certain*
-
-> __A library for handling forecasting datasets is documented.__
-
 Iqisa Documentation
 ======================
 
@@ -64,7 +57,7 @@ at forecasting on all questions:
 
 	>>> import numpy as np
 	>>> def brier_score(probabilities, outcomes):
-	...	return np.mean((probabilities-outcomes)**2)
+	... 	return np.mean((probabilities-outcomes)**2)
 	>>> scores=iqs.score(market_fcasts, brier_score)
 	>>> scores
 	                score

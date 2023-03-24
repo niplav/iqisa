@@ -1,3 +1,2 @@
-remove the stray columns from the processed data
 filter out predictions made after closing
 set timezone for prediction time
