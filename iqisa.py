@@ -18,7 +18,7 @@ comparable_index = [
     "open_time",
     "close_time",
     "resolve_time",
-    "days_open",
+    "time_open",
     "n_opts",
     "options",
     "q_status",
@@ -75,8 +75,8 @@ def _apply_score(group, scoring_rule, *args, **kwargs):
     )
 
 
-def normalise(aggregations, on=["question_id"]):
-    aggregations = aggregations.groupby(on).apply(_apply_normalise)
+def normalise(forecasts, on=["question_id"]):
+    forecasts = forecasts.groupby(on).apply(_apply_normalise)
 
 
 def _apply_normalise(group):
@@ -102,7 +102,7 @@ def add_cumul_user_score(forecasts, scoring_rule, *args, **kwargs):
 
 
 def _cumul_score(group, scoring_rule, *args, **kwargs):
-    group = group.sort_values("date_suspend")
+    group = group.sort_values("close_time")
     fst = group.index[0]
     cumul_scores = []
     for lim in group.index:
@@ -135,7 +135,7 @@ def add_cumul_user_perc(forecasts, lower_better=True):
         cur = forecasts.loc[lim:lim, :]
         curts = cur["timestamp"].values[0]
         # get the self.forecasts that have resolved before the current forecast happened
-        resbef = expan.loc[expan["date_suspend"] < curts]
+        resbef = expan.loc[expan["close_time"] < curts]
         # get the score of the last resolved forecast each forecaster made before the current forecast
         user_scores = resbef.groupby(["user_id"])["cumul_score"].last()
         user_scores = np.sort(user_scores)
@@ -192,17 +192,14 @@ def _frontfill_group(group):
     return group
 
 
-# TODO: decay should probabld be a number, there should probably be an
-# argument that specifies the extremising exponent
 def generic_aggregate(
     group,
     summ="arith",
     format="probs",
-    decay="nodec",
+    decay=1,
     extremize="noextr",
     extrfactor=3,
     fill=False,
-    expertise=False,
 ):
     n = len(group)
 
@@ -210,7 +207,7 @@ def generic_aggregate(
         return
 
     if fill:
-        group = give_frontfilled(group)
+        group = frontfill(group)
 
     probabilities = group["probability"]
 
@@ -220,13 +217,13 @@ def generic_aggregate(
             ((p**extrfactor) + (1 - p)) ** (1 / extrfactor)
         )
 
-    if decay == "dec":
-        if "NULL" in group["date_suspend"]:  # ARGH
+    if decay != 1:
+        if "NULL" in group["close_time"]:  # TODO: maybe not necessary anymore?
             weights = np.ones_like(probabilities)
         else:
-            t_diffs = group["date_suspend"] - group["timestamp"]
+            t_diffs = group["close_time"] - group["timestamp"]
             t_diffs = np.array([t.total_seconds() for t in t_diffs])
-            weights = 0.99 ** (1 / (1 * 86400) * t_diffs)
+            weights = decay ** (t_diffs * 1 / 86400)
     else:
         weights = np.ones_like(probabilities)
 
@@ -262,4 +259,4 @@ def generic_aggregate(
         d = n * (math.sqrt(3 * n**2 - 3 * n + 1) - 2) / (n**2 - n - 1)
         aggrval = p**d
 
-        return np.array([aggrval])
+    return np.array([aggrval])
