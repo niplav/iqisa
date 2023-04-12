@@ -1,4 +1,5 @@
 import json
+import zipfile
 
 import datetime as dt
 import numpy as np
@@ -7,6 +8,9 @@ import pandas as pd
 import iqisa as iqs
 
 questions_files = ["./data/metaculus/questions.json"]
+public_raw_files = ["./data/metaculus/public.json.zip"]
+public_files = ["./data/metaculus/public.csv.zip"]
+inner_files = ["public.json"]
 
 
 def load_private_binary(data_file):
@@ -14,6 +18,110 @@ def load_private_binary(data_file):
     return forecasts
 
 
+def load_public_binary(files=None, processed=True, complete=False):
+    if processed and complete:
+        raise Exception("Can't load complete data from a processed file.")
+    if file is None:
+        if processed:
+            files = public_raw_files
+        else:
+            files = public_files
+    if processed:
+        return load_processed_public_binary(files)
+    forecasts = _load_complete_public_binary(files[0])
+    return forecasts
+
+
+def load_processed_public_binary(files):
+    forecasts = pd.DataFrame()
+
+    for f in files:
+        forecasts = pd.concat([forecasts, pd.read_csv(f)])
+
+    return forecasts
+
+
+def _load_complete_public_binary(data_file):
+    zf = zipfile.ZipFile(data_file)
+    f = zf.open(inner_files[0])
+    jsondata = json.load(f)
+
+    question_ids = []
+    user_ids = []
+    team_ids = []
+    probabilities = []
+    answer_options = []
+    timestamps = []
+    outcomes = []
+    open_times = []
+    close_times = []
+    resolve_times = []
+    q_status = []
+
+    for page in jsondata:
+        for question in page["results"]:
+            if (
+                "type" in question["possibilities"].keys()
+                and question["possibilities"]["type"] == "binary"
+                and question["number_of_predictions"] > 0
+            ):
+                qid = str(question["id"])
+                resolution = str(question["resolution"])
+                open_time = dt.datetime.fromisoformat(question["publish_time"])
+                close_time = dt.datetime.fromisoformat(question["close_time"])
+                resolve_time = dt.datetime.fromisoformat(question["resolve_time"])
+                status = "resolved"
+                if question["resolution"] == -1:
+                    status = "ambiguous"
+                elif question["resolution"] == None:
+                    status = "open"
+                numf = 0
+                for forecast in question["prediction_timeseries"]:
+                    probabilities.append(float(forecast["community_prediction"]))
+                    timestamps.append(dt.datetime.fromtimestamp(forecast["t"]))
+                    numf += 1
+                question_ids += [qid] * numf
+                open_times += [open_time] * numf
+                close_times += [close_time] * numf
+                resolve_times += [resolve_time] * numf
+                outcomes += [resolution] * numf
+                q_status += [status] * numf
+
+    numf = len(probabilities)
+    answer_options = ["1"] * numf
+    user_ids = [
+        0
+    ] * numf  # since this is the community timeseries, we don't know the predictors
+    team_ids = [0] * numf
+    time_open = np.array(close_times) - np.array(open_times)
+    n_opts = [2] * numf
+    options = ["(0) No, (1) Yes, (-1) Ambiguous, (None) Still open"] * numf
+    q_type = [0] * numf
+
+    forecasts = pd.DataFrame(
+        {
+            "question_id": question_ids,
+            "user_id": user_ids,
+            "team_id": team_ids,
+            "probability": probabilities,
+            "answer_option": answer_options,
+            "timestamp": timestamps,
+            "outcome": outcomes,
+            "open_time": open_times,
+            "close_time": close_times,
+            "resolve_time": resolve_times,
+            "time_open": time_open,
+            "n_opts": n_opts,
+            "options": options,
+            "q_status": q_status,
+            "q_type": q_type,
+        }
+    )
+
+    return forecasts
+
+
+# TODO: info about unresolved questions
 def _load_complete_private_binary(data_file):
     f = open(data_file)
     jsondata = json.load(f)

@@ -14,6 +14,10 @@ Examples
 
 ### Minimal Example
 
+Note that there is not yet a package for iqisa, and you need to be in
+the directory with the datasets to load them. Sorry about that, I intend
+to fix it.
+
 The minimal steps for getting started with the library are quite
 simple. Here's the code for loading the data from the Good Judgment
 Project prediction markets:
