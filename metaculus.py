@@ -18,14 +18,12 @@ def load_private_binary(data_file):
     return forecasts
 
 
-def load_public_binary(files=None, processed=True, complete=False):
-    if processed and complete:
-        raise Exception("Can't load complete data from a processed file.")
-    if file is None:
+def load_public_binary(files=None, processed=True):
+    if files is None:
         if processed:
-            files = public_raw_files
-        else:
             files = public_files
+        else:
+            files = public_raw_files
     if processed:
         return load_processed_public_binary(files)
     forecasts = _load_complete_public_binary(files[0])
