@@ -537,7 +537,7 @@ def load_surveys(files=None, processed=True, complete=False):
         else:
             files = survey_files
     if processed:
-        return load_processed(files)
+        return _load_processed(files)
     if complete:
         return _load_complete_surveys(files)
 
@@ -556,7 +556,7 @@ def load_markets(files=None, processed=True, complete=False):
         else:
             files = market_files
     if processed:
-        return load_processed(files)
+        return _load_processed(files)
     if complete:
         return _load_complete_markets(files)
 
@@ -566,7 +566,7 @@ def load_markets(files=None, processed=True, complete=False):
     return forecasts
 
 
-def load_processed(files):
+def _load_processed(files):
     forecasts = pd.DataFrame()
 
     for f in files:

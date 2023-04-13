@@ -1,2 +1,5 @@
+time issues
+	set timezone for all the time fields
+	fix the f***** issue with 64 bit ns fields
 filter out predictions made after closing
-set timezone for prediction time
+put NA everywhere where we actually don't know the answer instead of inventing something

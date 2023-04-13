@@ -25,16 +25,23 @@ def load_public_binary(files=None, processed=True):
         else:
             files = public_raw_files
     if processed:
-        return load_processed_public_binary(files)
-    forecasts = _load_complete_public_binary(files[0])
-    return forecasts
+        return _load_processed_public_binary(files)
+    return _load_complete_public_binary(files[0])
 
 
-def load_processed_public_binary(files):
+def _load_processed_public_binary(files):
     forecasts = pd.DataFrame()
 
     for f in files:
         forecasts = pd.concat([forecasts, pd.read_csv(f)])
+
+    date_fields = ["timestamp", "open_time", "close_time", "resolve_time"]
+
+    for f in date_fields:
+        forecasts[f] = pd.to_datetime(forecasts[f], dayfirst=True, errors="coerce")
+
+    # TODO: fix this, datetime representation in nanoseconds
+    # forecasts["time_open"] = pd.to_timedelta(forecasts["time_open"])
 
     return forecasts
 

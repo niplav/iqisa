@@ -1,0 +1,172 @@
+import sys
+import time
+import zipfile
+import pandas as pd
+
+import datetime as dt
+
+from bs4 import BeautifulSoup
+
+public_raw_files = ["./data/predictionbook/public_raw.zip"]
+public_files = ["./data/predictionbook/public.csv.zip"]
+
+
+def load(files=None, processed=True):
+    if files is None:
+        if processed:
+            files = public_files
+        else:
+            files = public_raw_files
+    if processed:
+        return _load_processed(files)
+    return _load_complete(files)
+
+
+def _load_processed(files):
+    forecasts = pd.DataFrame()
+
+    for f in files:
+        forecasts = pd.concat([forecasts, pd.read_csv(f)])
+
+    date_fields = ["timestamp", "open_time", "close_time", "resolve_time"]
+
+    for f in date_fields:
+        forecasts[f] = pd.to_datetime(forecasts[f], errors="coerce", dayfirst=True)
+
+    # TODO: fix this. datetime representation is in nanoseconds and this can overflow.
+    # forecasts["time_open"] = pd.to_timedelta(forecasts["time_open"], errors="coerce")
+
+    return forecasts
+
+
+def _load_complete(data_file):
+    forecasts = pd.DataFrame()
+
+    zf = zipfile.ZipFile(data_file)
+    for filename in zf.namelist():
+        f = zf.open(filename)
+        content = f.read()
+        question_forecasts = _get_forecast_data(content, filename)
+        forecasts = pd.concat([forecasts, question_forecasts])
+        f.close()
+
+    zf.close()
+
+    return forecasts
+
+
+def _get_forecast_data(content, filename):
+    parsed_content = BeautifulSoup(content, "html.parser")
+
+    probabilities = []
+    user_ids = []
+    timestamps = []
+
+    question_id = filename.strip(".html")
+    timedata = parsed_content.find(
+        lambda tag: tag.name == "p" and "Created by" in tag.text
+    )
+    opened = timedata.find("span", class_="date").get("title")
+    open_time = pd.to_datetime(opened)
+    # we do this whole annoying dance *because* native pandas datetime works in
+    # nanoseconds, and some resolution datetimes are way too big for that.
+    # usually I'd just use dt.datetime.fromisoformat() here and let it do the
+    # annoying stuff, but since this is non ISO-8601-formatted, I have to do it
+    # manually.
+    closed = timedata.find_all("span", class_="date")[1].get("title")
+    close_time = time.strptime(closed, "%Y-%m-%d %H:%M:%S UTC")
+    close_time = dt.datetime.fromtimestamp(time.mktime(close_time), tz=dt.timezone.utc)
+
+    if timedata.find_all("span", class_="judgement") == []:
+        outcome = None
+        resolve_time = None
+        q_status = "open"
+    else:
+        outcome = timedata.find("span", class_="outcome").string
+        q_status = "resolved"
+        if outcome == "right":
+            outcome = 1.0
+        elif outcome == "wrong":
+            outcome = 0.0
+        elif outcome == "unknown":
+            q_status = "ambiguous"
+            outcome = -1.0
+        else:
+            outcome = None
+        resolved = timedata.find("span", class_="date created_at").get("title")
+        resolve_time = pd.to_datetime(resolved)
+
+    responses = parsed_content.find_all("li", class_="response")
+
+    for r in responses:
+        forecasts = r.find_all("span", class_="confidence")
+        if forecasts != []:
+            probability = (
+                float(r.find_all("span", class_="confidence")[0].text.strip("%")) / 100
+            )
+        else:
+            continue
+        probabilities.append(probability)
+        user_id = r.find("a", class_="user").string
+        user_ids.append(user_id)
+        estimated = r.find("span", class_="date").get("title")
+        timestamp = pd.to_datetime(estimated)
+        timestamps.append(timestamp)
+
+    numf = len(probabilities)
+
+    question_ids = [question_id] * numf
+
+    open_times = [open_time] * numf
+    close_times = [close_time] * numf
+    resolve_times = [resolve_time] * numf
+    time_open = [close_time - open_time] * numf
+
+    outcomes = [outcome] * numf
+
+    answer_options = ["1"] * numf
+    team_ids = [0] * numf
+    n_opts = [2] * numf
+    options = ["(0) No, (1) Yes, (-1) Ambiguous, (None) Still open"] * numf
+    q_type = [0] * numf
+
+    forecasts = pd.DataFrame(
+        {
+            "question_id": question_ids,
+            "user_id": user_ids,
+            "team_id": team_ids,
+            "probability": probabilities,
+            "answer_option": answer_options,
+            "timestamp": timestamps,
+            "outcome": outcomes,
+            "open_time": open_times,
+            "close_time": close_times,
+            "resolve_time": resolve_times,
+            "time_open": time_open,
+            "n_opts": n_opts,
+            "options": options,
+            "q_status": q_status,
+            "q_type": q_type,
+        }
+    )
+
+    return forecasts
+
+
+def load_questions(data_file=None):
+    if data_file is None:
+        data_file = public_raw_files[0]
+
+    questions = pd.DataFrame()
+
+    zf = zipfile.ZipFile(data_file)
+    for filename in zf.namelist():
+        f = zf.open(filename)
+        content = f.read()
+        question_forecasts = _get_questions_data(content, filename)
+        forecasts = pd.concat([forecasts, question_forecasts])
+        f.close()
+
+    zf.close()
+
+    return questions
