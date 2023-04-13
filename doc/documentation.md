@@ -1,6 +1,11 @@
 Iqisa Documentation
 ======================
 
+> […] there is a great gap between a tool existing and everyone using
+it, and good documentation is as underestimated as open datasets.
+
+*—[Gwern Branwen](https://gwern.net), [“2019 News”](https://gwern.net/newsletter/2019/13), 2019*
+
 Iqisa is a library for handling and comparing different forecasting
 datasets, focused on taking on the burden of dealing with differently
 organised datasets off the user and presenting them with a unified

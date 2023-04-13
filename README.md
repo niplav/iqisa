@@ -1,5 +1,14 @@
+> __Iqisa is [a library](https://github.com/niplav/iqisa) for handling and comparing forecasting datasets from different platforms.__
+
 Iqisa: A Library For Handling Forecasting Datasets
 ===================================================
+
+> The eventual success of my archives reinforced my view that
+public permission-less datasets are often a bottleneck to
+research: you cannot guarantee that people will use your dataset,
+but you can guarantee that they won’t use it.
+
+*—[Gwern Branwen](https://gwern.net/), [“2019 News”](https://gwern.net/newsletter/2019/13), 2019*
 
 Iqisa is a collection of forecasting datasets and a simple
 library for handling those datasets. Code and data available
@@ -59,6 +68,8 @@ Known Bugs
 
 Since this is a project I'm now doing in my free time, it might not be
 as polished as it should be. Sorry :-/
+
+If you decide to work with this library, feel free to [contact me](https://niplav.github.io/about.md#Contact).
 
 * Issues with the time fields
 	* The native pandas datetime format is too restricted for some time ranges in these datasets, those values might be set to `NaT`.
