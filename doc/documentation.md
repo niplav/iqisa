@@ -208,7 +208,7 @@ Its columns are
 
 <!--TODO: describe further-->
 
-* `question_id`, `date_start`, `date_suspend`, `date_to_close`, `date_closed`, `outcome`, `q_type`, `q_status`, `time_open`, `n_opts`, `options`: As in the [description of `forecasts` above](#forecasts)
+* `question_id`, `q_title`, `q_status`, `open_time`, `close_time`, `resolve_time`, `close_date`, `outcome`, `time_open`, `n_opts`, `options`: As in the [description of `forecasts` above](#forecasts)
 * `q_title`: The title of the question, as a `str`.
 
 Loading Functions

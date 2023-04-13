@@ -3,6 +3,11 @@ import pandas as pd
 
 import gjp
 
+# TODO:
+# * test the presence of all necessary columns on all datasets
+# * test whether all the columns on all datasets have the right type
+# * maybe test for maximal/minimal elements/counts?
+
 m = gjp.load_markets()
 s = gjp.load_surveys()
 

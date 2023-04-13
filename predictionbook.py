@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 
 public_raw_files = ["./data/predictionbook/public_raw.zip"]
 public_files = ["./data/predictionbook/public.csv.zip"]
+question_file = ["./data/predictionbook/questions.csv.zip"]
 
 
 def load(files=None, processed=True):
@@ -153,9 +154,14 @@ def _get_forecast_data(content, filename):
     return forecasts
 
 
-def load_questions(data_file=None):
+def load_questions(data_file=None, processed=True):
     if data_file is None:
-        data_file = public_raw_files[0]
+        if processed:
+            data_file = question_file[0]
+        else:
+            files = public_raw_files[0]
+    if processed:
+        return pd.read_csv(data_file)
 
     questions = pd.DataFrame()
 
@@ -163,10 +169,72 @@ def load_questions(data_file=None):
     for filename in zf.namelist():
         f = zf.open(filename)
         content = f.read()
-        question_forecasts = _get_questions_data(content, filename)
-        forecasts = pd.concat([forecasts, question_forecasts])
+        question_data = _get_questions_data(content, filename)
+        questions = pd.concat([questions, question_data])
         f.close()
 
     zf.close()
 
     return questions
+
+
+def _get_questions_data(content, filename):
+    print(filename)
+    parsed_content = BeautifulSoup(content, "html.parser")
+
+    question_id = filename.strip(".html")
+    title_elem = parsed_content.find("h1")
+    if title_elem is None:
+        q_title = None
+    else:
+        q_title = title_elem.get_text(strip=True).strip()
+    timedata = parsed_content.find(
+        lambda tag: tag.name == "p" and "Created by" in tag.text
+    )
+    opened = timedata.find("span", class_="date").get("title")
+    open_time = pd.to_datetime(opened)
+    # same as in the forecast loading function
+    closed = timedata.find_all("span", class_="date")[1].get("title")
+    close_time = time.strptime(closed, "%Y-%m-%d %H:%M:%S UTC")
+    close_time = dt.datetime.fromtimestamp(time.mktime(close_time), tz=dt.timezone.utc)
+
+    if timedata.find_all("span", class_="judgement") == []:
+        outcome = None
+        resolve_time = None
+        q_status = "open"
+    else:
+        outcome = timedata.find("span", class_="outcome").string
+        q_status = "resolved"
+        if outcome == "right":
+            outcome = 1.0
+        elif outcome == "wrong":
+            outcome = 0.0
+        elif outcome == "unknown":
+            q_status = "ambiguous"
+            outcome = -1.0
+        else:
+            outcome = None
+        resolved = timedata.find("span", class_="date created_at").get("title")
+        resolve_time = pd.to_datetime(resolved)
+
+    time_open = close_time - open_time
+
+    n_opts = 2
+    options = "(0) No, (1) Yes, (-1) Ambiguous, (None) Still open"
+
+    question_data = pd.DataFrame(
+        {
+            "question_id": [question_id],
+            "q_title": [q_title],
+            "q_status": [q_status],
+            "open_time": [open_time],
+            "close_time": [close_time],
+            "resolve_time": [resolve_time],
+            "outcome": [outcome],
+            "time_open": [time_open],
+            "n_opts": [n_opts],
+            "options": [options],
+        }
+    )
+
+    return question_data
