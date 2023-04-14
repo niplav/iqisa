@@ -14,13 +14,16 @@ Iqisa is a collection of forecasting datasets and a simple
 library for handling those datasets. Code and data available
 [here](https://github.com/niplav/iqisa).
 
-So far it contains data from the [Good Judgment
-Project](https://en.wikipedia.org/wiki/The_Good_Judgment_Project),
-the [Metaculus](https://metaculus.com) public API<!--TODO: link-->, and
-[PredictionBook](https://predictionbook.com/) data, as well as code for
-handling private [Metaculus](https://metaculus.com) data (available to
-researchers on request to Metaculus), but I plan to also add data from
-various other sources.
+So far it contains data from:
+
+* The [Good Judgment Project](https://en.wikipedia.org/wiki/The_Good_Judgment_Project): ~790k market trades+~3.14m survey predictions≈3.9m forecasts
+* The [Metaculus public API](https://www.metaculus.com/api2/schema/redoc/): ~210k forecasts
+* [PredictionBook](https://predictionbook.com/): ~64k forecasts
+
+for a total of ~4.2m forecasts, as well as code for handling private
+[Metaculus](https://metaculus.com) data (available to researchers on
+request to Metaculus), but I plan to also add data from various other
+sources.
 
 The documentation can be found [here](https://niplav.github.io/iqisadoc.html), but a simple
 example for using the library is seeing whether traders with more than
@@ -79,6 +82,7 @@ If you decide to work with this library, feel free to [contact me](https://nipla
 * I fear that despite my best efforts, not all data frome the GJP data has been transferred.
 * The default fields in the Metaculus & PredictionBook data should be `NA` more often than they are right now.
 * The documentation is still *slightly* spotty, and tests are mostly nonexistent.
+* Some variables shouldn't be exposed, but are.
 
 Feature Wishlist
 -----------------
