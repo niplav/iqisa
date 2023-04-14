@@ -307,7 +307,46 @@ a subset of the forecasts in `data_file`.
 
 Returns a pandas DataFrame with the columns described [here](#Questions)
 loaded from `files`, by default from the files listed in
-`metaculus.questions_files` (value `[./data/metaculus/questions.csv]`).
+`metaculus.questions_files` (value `["./data/metaculus/questions.csv"]`).
+
+### `metaculus.load_public_binary(files=None, processed=True)`
+
+__Note__: This data is not the data for individual forecasters, but
+timeseries data for each question (capped at 101 interpolated datapoints
+per question).
+
+Returns a pandas DataFrame with forecasting data frome the
+public Metaculus API. The columns of the data are described
+[here](#Questions), and the data is loaded from `files`, by
+default from the files in `metaculus.public_files` (value
+(`["./data/metaculus/public.csv.zip"]`).
+
+#### Arguments
+
+* `files`: Specify a different file do load the data from.
+* `processed`: If `True`, load the data from a pre-processed CSV, if `False`, load it from the original JSON. Currently the only difference is that loading from the original data is slower.
+
+### `predictionbook.load(files=None, processed=True)`
+
+Return a pandas DataFrame with forecasts from PredictionBook (columns
+of the data described [here](#Questions)).
+
+The data is loaded from `files`, by default `public_files`
+(`["./data/predictionbook/public.csv.zip"]`).
+
+#### Arguments
+
+* `files`: Specify a different file do load the data from.
+* `processed`: If `True`, load the data from a pre-processed CSV, if `False`, load it from the original HTML files. Currently the only difference is that loading from the original data is far far slower.
+
+### `predictionbook.load_questions(data_file=None, processed=True)`
+
+Returns a pandas DataFrame with the columns described [here](#Questions)
+loaded from `data_file`, by default from the files listed in
+`predictionbook.questions_file` (value `["./data/metaculus/questions.csv.zip"]`).
+
+Setting `processed=False` makes the loading much slower, and currently
+has no other effect.
 
 General Functions
 ------------------

@@ -22,7 +22,7 @@ handling private [Metaculus](https://metaculus.com) data (available to
 researchers on request to Metaculus), but I plan to also add data from
 various other sources.
 
-The documentation can be found [here](./iqisadoc.html), but a simple
+The documentation can be found [here](https://niplav.github.io/iqisadoc.html), but a simple
 example for using the library is seeing whether traders with more than
 100 trades have a better Brier score than traders in general:
 
