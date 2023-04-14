@@ -620,7 +620,7 @@ single number, intended to be plugged as a second argument into
 	* This parameter is only used if `summ` is `'arith'`
 * `extremize`: Whether and how to [extremize](https://arxiv.org/pdf/1506.06405.pdf) forecasts.
 	* `noextr`: Don't extremize, leave the probabilities as they are
-	* `gjpextr`: Use the extremising method described in [Ungar et al 2012](./doc/prediction/the_good_judgement_project_a_large_scale_test_of_different_methods_of_combining_expert_predictions_ungar_et_al_2012.pdf): Given the already aggregated probability `$p$` and extremization factor `$a$` (function argument `extrfactor`, default 3), set the new probaility to `$\frac{p^a}{(p^a+(1-p))^{1/a}}$`
+	* `gjpextr`: Use the extremising method described in [Ungar et al 2012](https://niplav.github.io/doc/prediction/the_good_judgement_project_a_large_scale_test_of_different_methods_of_combining_expert_predictions_ungar_et_al_2012.pdf): Given the already aggregated probability `$p$` and extremization factor `$a$` (function argument `extrfactor`, default 3), set the new probaility to `$\frac{p^a}{(p^a+(1-p))^{1/a}}$`
 	* `postextr`: Given the already aggregated probability `$p$` and extremization factor `$a$` (function argument `extrfactor`, default 3), extremise the probaility to `$p^a$`
 	* `neyextr`: Use the extremising method developed in [Neyman & Roughgarden 2022](https://arxiv.org/pdf/2111.03153.pdf): Given `$n$` forecasts, already aggregated to a probability `$p$`, extremise to `$n \cdot \frac{\sqrt{3 \cdot n^2-3n+1}-2}{n^2-n-1}$`
 * `fill`: Change the forecasts so that each forecast is repeated daily until a new forecast is made
