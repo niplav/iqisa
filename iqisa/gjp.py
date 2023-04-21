@@ -9,31 +9,31 @@ import pandas as pd
 
 import iqisa as iqs
 
-questions_files = ["./data/gjp/ifps.csv"]
+questions_files = ["{data_dir}/gjp/ifps.csv"]
 
-processed_survey_files = ["./data/gjp/surveys.csv.zip"]
+processed_survey_files = ["{data_dir}/gjp/surveys.csv.zip"]
 
 survey_files = [
-    "./data/gjp/survey_fcasts.yr1.csv",
-    "./data/gjp/survey_fcasts.yr2.csv",
-    "./data/gjp/survey_fcasts.yr3.csv.zip",
-    "./data/gjp/survey_fcasts.yr4.csv.zip",
+    "{data_dir}/gjp/survey_fcasts.yr1.csv",
+    "{data_dir}/gjp/survey_fcasts.yr2.csv",
+    "{data_dir}/gjp/survey_fcasts.yr3.csv.zip",
+    "{data_dir}/gjp/survey_fcasts.yr4.csv.zip",
 ]
 
-processed_market_files = ["./data/gjp/markets.csv.zip"]
+processed_market_files = ["{data_dir}/gjp/markets.csv.zip"]
 
 market_files = [
-    "./data/gjp/pm_transactions.lum1.yr2.csv",
-    "./data/gjp/pm_transactions.lum2.yr2.csv",
-    "./data/gjp/pm_transactions.lum1.yr3.csv",
-    "./data/gjp/pm_transactions.lum2a.yr3.csv",
-    "./data/gjp/pm_transactions.lum2.yr3.csv",
-    "./data/gjp/pm_transactions.inkling.yr3.csv",
-    "./data/gjp/pm_transactions.control.yr4.csv",
-    "./data/gjp/pm_transactions.batch.train.yr4.csv",
-    "./data/gjp/pm_transactions.batch.notrain.yr4.csv",
-    "./data/gjp/pm_transactions.supers.yr4.csv",
-    "./data/gjp/pm_transactions.teams.yr4.csv",
+    "{data_dir}/gjp/pm_transactions.lum1.yr2.csv",
+    "{data_dir}/gjp/pm_transactions.lum2.yr2.csv",
+    "{data_dir}/gjp/pm_transactions.lum1.yr3.csv",
+    "{data_dir}/gjp/pm_transactions.lum2a.yr3.csv",
+    "{data_dir}/gjp/pm_transactions.lum2.yr3.csv",
+    "{data_dir}/gjp/pm_transactions.inkling.yr3.csv",
+    "{data_dir}/gjp/pm_transactions.control.yr4.csv",
+    "{data_dir}/gjp/pm_transactions.batch.train.yr4.csv",
+    "{data_dir}/gjp/pm_transactions.batch.notrain.yr4.csv",
+    "{data_dir}/gjp/pm_transactions.supers.yr4.csv",
+    "{data_dir}/gjp/pm_transactions.teams.yr4.csv",
 ]
 
 _year2_default_changes = {
@@ -294,12 +294,13 @@ def _get_option_from_options(stockname_and_options):
     )
 
 
-def load_questions(files=None):
+def load_questions(files=None, data_dir: str = "./data"):
     if files is None:
         files = questions_files
+        files = [x.format(data_dir=data_dir) for x in files]
     questions = pd.DataFrame()
 
-    for f in questions_files:
+    for f in files:
         questions = pd.concat([questions, pd.read_csv(f)])
 
     date_fields = ["date_start", "date_suspend", "date_to_close", "date_closed"]
@@ -528,7 +529,7 @@ def _load_complete_surveys(files=None, probmargin=0.005):
     return forecasts
 
 
-def load_surveys(files=None, processed=True, complete=False):
+def load_surveys(files=None, processed=True, complete=False, data_dir: str = "./data"):
     if processed and complete:
         raise Exception("Can't load complete data from a processed file.")
     if files is None:
@@ -536,6 +537,9 @@ def load_surveys(files=None, processed=True, complete=False):
             files = processed_survey_files
         else:
             files = survey_files
+
+        files = [x.format(data_dir=data_dir) for x in files]
+
     if processed:
         return _load_processed(files)
     if complete:
@@ -547,7 +551,7 @@ def load_surveys(files=None, processed=True, complete=False):
     return forecasts
 
 
-def load_markets(files=None, processed=True, complete=False):
+def load_markets(files=None, processed=True, complete=False, data_dir: str = "./data"):
     if processed and complete:
         raise Exception("Can't load complete data from a processed file.")
     if files is None:
@@ -555,6 +559,9 @@ def load_markets(files=None, processed=True, complete=False):
             files = processed_market_files
         else:
             files = market_files
+
+        files = [x.format(data_dir=data_dir) for x in files]
+
     if processed:
         return _load_processed(files)
     if complete:

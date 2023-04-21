@@ -29,8 +29,10 @@ The documentation can be found [here](https://niplav.github.io/iqisadoc.html), b
 example for using the library is seeing whether traders with more than
 100 trades have a better Brier score than traders in general:
 
-	import gjp
-	import iqisa as iqs
+	import numpy as np
+	from iqisa import gjp
+	import iqisa.iqisa as iqs
+
 	market_fcasts=gjp.load_markets()
 
 	def brier_score(probabilities, outcomes):

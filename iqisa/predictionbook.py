@@ -7,17 +7,20 @@ import datetime as dt
 
 from bs4 import BeautifulSoup
 
-public_raw_files = ["./data/predictionbook/public_raw.zip"]
-public_files = ["./data/predictionbook/public.csv.zip"]
-question_file = ["./data/predictionbook/questions.csv.zip"]
+public_raw_files = ["{data_dir}/predictionbook/public_raw.zip"]
+public_files = ["{data_dir}/predictionbook/public.csv.zip"]
+question_file = ["{data_dir}/predictionbook/questions.csv.zip"]
 
 
-def load(files=None, processed=True):
+def load(files=None, processed=True, data_dir: str = "./data"):
     if files is None:
         if processed:
             files = public_files
         else:
             files = public_raw_files
+
+        files = [x.format(data_dir=data_dir) for x in files]
+
     if processed:
         return _load_processed(files)
     return _load_complete(files)
@@ -154,18 +157,21 @@ def _get_forecast_data(content, filename):
     return forecasts
 
 
-def load_questions(data_file=None, processed=True):
-    if data_file is None:
+def load_questions(files=None, processed=True, data_dir: str = "./data"):
+    if files is None:
         if processed:
-            data_file = question_file[0]
+            files = question_file[0]
         else:
-            files = public_raw_files[0]
+            files = public_raw_files[0]  # not sure here, didn't get it to work
+
+        files = files.format(data_dir=data_dir)
+
     if processed:
-        return pd.read_csv(data_file)
+        return pd.read_csv(files)
 
     questions = pd.DataFrame()
 
-    zf = zipfile.ZipFile(data_file)
+    zf = zipfile.ZipFile(files)
     for filename in zf.namelist():
         f = zf.open(filename)
         content = f.read()
