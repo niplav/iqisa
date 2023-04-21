@@ -299,7 +299,7 @@ def load_questions(files=None):
         files = questions_files
     questions = pd.DataFrame()
 
-    for f in questions_files:
+    for f in files:
         questions = pd.concat([questions, pd.read_csv(f)])
 
     date_fields = ["date_start", "date_suspend", "date_to_close", "date_closed"]
