@@ -20,20 +20,20 @@ survey_files = [
     "./data/gjp/survey_fcasts.yr4.csv.zip",
 ]
 
-processed_market_files = ["./data/gjp/markets.csv.zip"]
+processed_market_files = ["{data_dir}/gjp/markets.csv.zip"]
 
 market_files = [
-    "./data/gjp/pm_transactions.lum1.yr2.csv",
-    "./data/gjp/pm_transactions.lum2.yr2.csv",
-    "./data/gjp/pm_transactions.lum1.yr3.csv",
-    "./data/gjp/pm_transactions.lum2a.yr3.csv",
-    "./data/gjp/pm_transactions.lum2.yr3.csv",
-    "./data/gjp/pm_transactions.inkling.yr3.csv",
-    "./data/gjp/pm_transactions.control.yr4.csv",
-    "./data/gjp/pm_transactions.batch.train.yr4.csv",
-    "./data/gjp/pm_transactions.batch.notrain.yr4.csv",
-    "./data/gjp/pm_transactions.supers.yr4.csv",
-    "./data/gjp/pm_transactions.teams.yr4.csv",
+    "{data_dir}/gjp/pm_transactions.lum1.yr2.csv",
+    "{data_dir}/gjp/pm_transactions.lum2.yr2.csv",
+    "{data_dir}/gjp/pm_transactions.lum1.yr3.csv",
+    "{data_dir}/gjp/pm_transactions.lum2a.yr3.csv",
+    "{data_dir}/gjp/pm_transactions.lum2.yr3.csv",
+    "{data_dir}/gjp/pm_transactions.inkling.yr3.csv",
+    "{data_dir}/gjp/pm_transactions.control.yr4.csv",
+    "{data_dir}/gjp/pm_transactions.batch.train.yr4.csv",
+    "{data_dir}/gjp/pm_transactions.batch.notrain.yr4.csv",
+    "{data_dir}/gjp/pm_transactions.supers.yr4.csv",
+    "{data_dir}/gjp/pm_transactions.teams.yr4.csv",
 ]
 
 _year2_default_changes = {
@@ -547,7 +547,7 @@ def load_surveys(files=None, processed=True, complete=False):
     return forecasts
 
 
-def load_markets(files=None, processed=True, complete=False):
+def load_markets(files=None, processed=True, complete=False, data_dir: str = "./data"):
     if processed and complete:
         raise Exception("Can't load complete data from a processed file.")
     if files is None:
@@ -555,6 +555,9 @@ def load_markets(files=None, processed=True, complete=False):
             files = processed_market_files
         else:
             files = market_files
+
+        files = [x.format(data_dir=data_dir) for x in files]
+
     if processed:
         return _load_processed(files)
     if complete:
