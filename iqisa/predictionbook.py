@@ -159,7 +159,7 @@ def load_questions(data_file=None, processed=True):
         if processed:
             data_file = question_file[0]
         else:
-            files = public_raw_files[0]
+            data_file = public_raw_files[0]
     if processed:
         return pd.read_csv(data_file)
 
