@@ -7,9 +7,9 @@ import pandas as pd
 
 import iqisa as iqs
 
-questions_files = ["./data/metaculus/questions.json"]
-public_raw_files = ["./data/metaculus/public.json.zip"]
-public_files = ["./data/metaculus/public.csv.zip"]
+questions_files = ["{data_dir}/metaculus/questions.json"]
+public_raw_files = ["{data_dir}/metaculus/public.json.zip"]
+public_files = ["{data_dir}/metaculus/public.csv.zip"]
 inner_files = ["public.json"]
 
 
@@ -18,12 +18,15 @@ def load_private_binary(data_file):
     return forecasts
 
 
-def load_public_binary(files=None, processed=True):
+def load_public_binary(files=None, processed=True, data_dir: str = "./data"):
     if files is None:
         if processed:
             files = public_files
         else:
             files = public_raw_files
+
+        files = [x.format(data_dir=data_dir) for x in files]
+
     if processed:
         return _load_processed_public_binary(files)
     return _load_complete_public_binary(files[0])
@@ -226,9 +229,10 @@ def _load_complete_private_binary(data_file):
     return forecasts
 
 
-def load_questions(files=None):
+def load_questions(files=None, data_dir: str = "./data"):
     if files is None:
         files = questions_files
+        files = [x.format(data_dir=data_dir) for x in files]
 
     questions = pd.DataFrame()
 
