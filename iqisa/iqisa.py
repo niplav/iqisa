@@ -257,6 +257,6 @@ def generic_aggregate(
     elif extremize == "neyextr":
         p = aggrval
         d = n * (math.sqrt(3 * n**2 - 3 * n + 1) - 2) / (n**2 - n - 1)
-        aggrval = p**d
+        aggrval = p*(d-1)
 
     return np.array([aggrval])

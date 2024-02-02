@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+echo 'Fetching forecast data'
+count=0
+
+for p in $(cat question_numbers.txt); do
+	echo "Fetching question ${p}"
+	curl --silent --show-error --fail 'https://www.metaculus.com/api2/questions/'$p'/?include_description=true' >> metaculus_questions.json
+	echo >> metaculus_questions.json
+	sleep 5
+done
+
+echo "Got $count questions"

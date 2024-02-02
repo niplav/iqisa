@@ -1,8 +1,3 @@
 #!/usr/bin/env bash
-jq <$1 '[.results|.[]|{"question_id": .id, "open_time": .publish_time, "close_time": .close_time, "resolve_time": .resolve_time, "outcome": .resolution, "question_title": .title, "short_title": .title_short}]' |
-sed '/^[][]$/d' | #so what? sue me
-sed 's/\}$/\},/' | #or tell me a better method
-sed '$s/\},$/\}/' |
-sed '1i[
-$a]' |
-jq
+jq <$1 '{"question_id": .id, "open_time": .publish_time, "close_time": .close_time, "resolve_time": .resolve_time, "outcome": .resolution, "question_title": .title, "short_title": .title_short, "categories": .categories, "q_desc": .description, "resolution_criteria": .resolution_criteria}' |
+./full_json

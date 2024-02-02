@@ -12,7 +12,7 @@ public_files = ["{data_dir}/predictionbook/public.csv.zip"]
 question_file = ["{data_dir}/predictionbook/questions.csv.zip"]
 
 
-def load(files=None, processed=True, data_dir: str = "./data"):
+def load(files=None, processed=True, probmargin=0.005, data_dir: str = "./data"):
     if files is None:
         if processed:
             files = public_files
@@ -22,11 +22,11 @@ def load(files=None, processed=True, data_dir: str = "./data"):
         files = [x.format(data_dir=data_dir) for x in files]
 
     if processed:
-        return _load_processed(files)
-    return _load_complete(files)
+        return _load_processed(files, probmargin=probmargin)
+    return _load_complete(files, probmargin=probmargin)
 
 
-def _load_processed(files):
+def _load_processed(files, probmargin=0.005):
     forecasts = pd.DataFrame()
 
     for f in files:
@@ -40,10 +40,13 @@ def _load_processed(files):
     # TODO: fix this. datetime representation is in nanoseconds and this can overflow.
     # forecasts["time_open"] = pd.to_timedelta(forecasts["time_open"], errors="coerce")
 
+    forecasts.loc[forecasts["probability"] <= 0, "probability"] = probmargin
+    forecasts.loc[forecasts["probability"] >= 1, "probability"] = 1 - probmargin
+
     return forecasts
 
 
-def _load_complete(data_files):
+def _load_complete(data_files, probmargin=0.005):
     forecasts = pd.DataFrame()
 
     for data_file in data_files:
@@ -56,6 +59,9 @@ def _load_complete(data_files):
           f.close()
 
       zf.close()
+
+    forecasts.loc[forecasts["probability"] <= 0, "probability"] = probmargin
+    forecasts.loc[forecasts["probability"] >= 1, "probability"] = 1 - probmargin
 
     return forecasts
 
@@ -186,7 +192,6 @@ def load_questions(files=None, processed=True, data_dir: str = "./data"):
 
 
 def _get_questions_data(content, filename):
-    print(filename)
     parsed_content = BeautifulSoup(content, "html.parser")
 
     question_id = filename.strip(".html")

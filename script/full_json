@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+sed '/^[][]$/d' | #so what? sue me
+sed 's/\}$/\},/' | #or tell me a better method
+sed '$s/\},$/\}/' |
+sed '1i[
+$a]' |
+jq -c

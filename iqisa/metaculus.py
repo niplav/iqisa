@@ -41,9 +41,13 @@ def _load_processed_public_binary(files):
     date_fields = ["timestamp", "open_time", "close_time", "resolve_time"]
 
     for f in date_fields:
-        forecasts[f] = pd.to_datetime(forecasts[f], dayfirst=True, errors="coerce")
+        forecasts[f]=forecasts[f].map(dt.datetime.fromisoformat)
 
-    # TODO: fix this, datetime representation in nanoseconds
+    forecasts['timestamp']=pd.Series(forecasts["timestamp"].dt.to_pydatetime(),dtype='object')
+    forecasts['open_time']=pd.Series(forecasts["open_time"].dt.to_pydatetime(),dtype='object')
+
+    # TODO: This is a workaround because timedelta in pandas can't handle large dates
+    forecasts["time_open"] = forecasts['close_time']-forecasts['open_time']
     # forecasts["time_open"] = pd.to_timedelta(forecasts["time_open"])
 
     return forecasts
@@ -66,34 +70,33 @@ def _load_complete_public_binary(data_file):
     resolve_times = []
     q_status = []
 
-    for page in jsondata:
-        for question in page["results"]:
-            if (
-                "type" in question["possibilities"].keys()
-                and question["possibilities"]["type"] == "binary"
-                and question["number_of_predictions"] > 0
-            ):
-                qid = str(question["id"])
-                resolution = str(question["resolution"])
-                open_time = dt.datetime.fromisoformat(question["publish_time"])
-                close_time = dt.datetime.fromisoformat(question["close_time"])
-                resolve_time = dt.datetime.fromisoformat(question["resolve_time"])
-                status = "resolved"
-                if question["resolution"] == -1:
-                    status = "ambiguous"
-                elif question["resolution"] == None:
-                    status = "open"
-                numf = 0
-                for forecast in question["prediction_timeseries"]:
-                    probabilities.append(float(forecast["community_prediction"]))
-                    timestamps.append(dt.datetime.fromtimestamp(forecast["t"]))
-                    numf += 1
-                question_ids += [qid] * numf
-                open_times += [open_time] * numf
-                close_times += [close_time] * numf
-                resolve_times += [resolve_time] * numf
-                outcomes += [resolution] * numf
-                q_status += [status] * numf
+    for question in jsondata:
+        if (
+            "type" in question["possibilities"].keys()
+            and question["possibilities"]["type"] == "binary"
+            and question["prediction_count"] > 0
+        ):
+            qid = str(question["id"])
+            resolution = str(question["resolution"])
+            open_time = dt.datetime.fromisoformat(question["publish_time"])
+            close_time = dt.datetime.fromisoformat(question["close_time"])
+            resolve_time = dt.datetime.fromisoformat(question["resolve_time"])
+            status = "resolved"
+            if question["resolution"] == -1:
+                status = "ambiguous"
+            elif question["resolution"] == None:
+                status = "open"
+            numf = 0
+            for forecast in question["community_prediction"]["history"]:
+                probabilities.append(float(forecast["x1"]["q2"]))
+                timestamps.append(dt.datetime.fromtimestamp(forecast["t"]))
+                numf += 1
+            question_ids += [qid] * numf
+            open_times += [open_time] * numf
+            close_times += [close_time] * numf
+            resolve_times += [resolve_time] * numf
+            outcomes += [resolution] * numf
+            q_status += [status] * numf
 
     numf = len(probabilities)
     answer_options = ["1"] * numf

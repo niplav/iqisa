@@ -315,6 +315,11 @@ __Note__: This data is not the data for individual forecasters, but
 timeseries data for each question (capped at 101 interpolated datapoints
 per question).
 
+__Note__: The type of time data here is
+[`datetime.datetime`](https://docs.python.org/3/library/datetime.html#datetime-objects),
+*not*
+[`datetime64[ns]`](https://numpy.org/doc/stable/reference/arrays.datetime.html).
+
 Returns a pandas DataFrame with forecasting data frome the
 public Metaculus API. The columns of the data are described
 [here](#Questions), and the data is loaded from `files`, by
