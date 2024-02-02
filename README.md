@@ -12,7 +12,7 @@ but you can guarantee that they won’t use it.
 
 Iqisa is a collection of forecasting datasets and a simple
 library for handling those datasets. Code and data available
-[here](https://github.com/niplav/iqisa).
+[here](http://github.com/niplav/iqisa).
 
 So far it contains data from:
 
@@ -25,9 +25,9 @@ for a total of ~4.2m forecasts, as well as code for handling private
 request to Metaculus), but I plan to also add data from various other
 sources.
 
-The documentation can be found [here](https://niplav.github.io/iqisadoc.html), but a simple
-example for using the library is seeing whether traders with more than
-100 trades have a better Brier score than traders in general:
+The documentation can be found [here](http://niplav.site/iqisadoc.html),
+but a simple example for using the library is seeing whether traders with
+more than 100 trades have a better Brier score than traders in general:
 
 	import numpy as np
 	from iqisa import gjp
@@ -116,5 +116,5 @@ Acknowledgements
 -----------------
 
 Credits go to [Arb Research](https://arbresearch.com/) for funding the
-first 85% of this work, and Misha Yagudin in particular for guidance
+first 80% of this work, and Misha Yagudin in particular for guidance
 and mentorship.
