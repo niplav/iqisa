@@ -250,8 +250,14 @@ def load_questions(files=None, data_dir: str = "./data"):
         outcomes = []
         question_titles = []
         question_statuses = []
+        descriptions = []
+        resolution_criteria = []
+        categories = []
 
         for question in jsondata:
+            resolution_criteria.append(question['resolution_criteria'])
+            descriptions.append(question['q_desc'])
+            categories.append(question['categories'])
             question_ids.append(int(question["question_id"]))
             # apparently datetime.fromisoformat doesn't
             # recognize the postfix 'Z' as indicating UTC as
@@ -307,6 +313,9 @@ def load_questions(files=None, data_dir: str = "./data"):
                 "time_open": time_open,
                 "n_opts": n_opts,
                 "options": options,
+                "descriptions": descriptions,
+                "resolution_criteria": resolution_criteria,
+                "categories": categories,
             }
         )
 
