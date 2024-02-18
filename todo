@@ -1,4 +1,8 @@
 time issues
+	represent dates beyond 2262 with PeriodIndex instead?
+		https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-oob
+		https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.period_range.html
+		https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.PeriodIndex.html
 	set timezone for all the time fields
 filter out predictions made after closing
 put NA everywhere where we actually don't know the answer instead of inventing something
@@ -7,4 +11,5 @@ Remove `nan`s from the dataset
 Talk about the probmargin for predictionbook
 Switch to pytest
 Add Metaculus updated fields to documentation
+	Only have data on Metaculus binary questions
 Add sources for datasets
